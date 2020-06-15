@@ -1,0 +1,174 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Jun  9 11:00:42 2020
+
+@author: logical
+"""
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed May 20 23:21:05 2020
+
+@author: logical
+"""
+
+from scipy import integrate
+import numpy as np
+import numpy.matlib
+
+
+    
+
+import time
+
+wType = 'irregular'
+bemFreq = [5.19999512307279,0.0199999977946844]
+wDepth = 'infinite'
+rampTime = 100
+dt = 0.1
+maxIt = 2000
+g = 9.81
+rho = 1000
+endTime = 200
+freqRange = []
+freqDisc = 'EqualEnergy'
+numFreq = 500
+phaseSeed = 1
+wT = 8
+wH = 2.5
+spectrumType = 'BS'
+waveDir = [30,60]
+waveSpread = [30,60]
+wavegauge1loc = [0,0]
+wavegauge2loc = [0,0]
+wavegauge3loc = [0,0]
+
+t11 = time.time()
+
+if wDepth == 'infinite':
+    deepWaterWave = 1
+    waterDepth = 200
+    print('\tInfinite water depth specified in BEM, "waves.waterDepth" set to 200m for vizualisation.\n')
+else:
+    deepWaterWave = 0
+    waterDepth = wDepth
+
+WFQSt=np.min(bemFreq)
+WFQEd=np.max(bemFreq)
+numFreq_interp = 500000
+wF = np.arange(WFQSt,WFQEd+((WFQEd-WFQSt)/numFreq_interp),(WFQEd-WFQSt)/numFreq_interp)
+wF1 = wF
+
+
+
+dw = np.mean(np.diff(wF))
+if np.size(numFreq) == 0:
+    numFreq = 500
+
+
+
+if phaseSeed != 0:
+    np.random.seed(phaseSeed) #Phase seed = 1,2,3,...,etc
+else:
+    np.random.seed(np.random.shuffle(phaseSeed))
+if (freqDisc == 'EqualEnergy') or (freqDisc == 'Traditional'):
+    phase = 2*np.pi*np.conj(np.transpose(np.random.rand(numFreq,np.size(waveDir))))
+#np.conj(np.transpose(
+
+
+
+freq = wF/(2*np.pi)
+Tp = wT
+Hs = wH
+if spectrumType == 'BS':
+    # Bretschneider Sprectrum from Tucker and Pitt (2001)
+    B_BS = (1.057/Tp)**4
+    A_BS = B_BS*(Hs/2)**2
+    S_f = (A_BS*freq**(-5)*np.exp(-B_BS*freq**(-4)))               # Wave Spectrum [m^2-s]
+    wS = S_f/(2*np.pi)                                      # Wave Spectrum [m^2-s/rad]
+wk= wF**2/g
+if deepWaterWave == 0:
+    for i in range(1,101):
+        wk = wF**2/g/np.tanh(wk*waterDepth)                                         # Calculate Wave Number for Larger Number of Frequencies Before Down Sampling in Equal Energy Method
+if deepWaterWave == 1:
+    # Deepwater Approximation
+    Pw = np.sum(1/2*rho*g**(2)*S_f*dw/wF)
+else:
+    # Full Wave Power Equation
+    Pw = np.sum((1/2)*rho*g*S_f*dw*np.sqrt(9.81/wk*np.tanh(wk*waterDepth))*(1 + 2*wk*waterDepth/np.sinh(2*wk*waterDepth)))
+
+if freqDisc == 'EqualEnergy':
+    m0 = np.trapz(np.abs(S_f),freq)
+    numBins = numFreq+1
+    a_targ = m0/numBins
+    SF = integrate.cumtrapz(S_f,freq,initial = 0)
+    
+    
+    wn = [np.argmin(np.abs(SF-(x+1)*a_targ))+1 for x in range(numBins)]
+    
+    
+    # wn = [1]
+    # for kk in range(numBins):
+    #     BB = np.argmin(np.abs(SF-(kk+1)*a_targ))+1
+    #     wn.append(BB)
+        
+    wF = 2*np.pi*freq[wn[:len(wn)-1]]
+    dw = np.append(wF[0]-2*np.pi*freq[0],np.diff(wF)) 
+    wS = wS[wn[:len(wn)-1]]                         # Wave Spectrum [m^2-s/rad] 
+wA = 2 * wS 
+
+
+elapsed6 = time.time() - t11
+print(elapsed6)
+t12 = time.time()
+
+
+wk= wF**2/g
+if deepWaterWave == 0:
+    for i in range(1,101):
+        wk = wF**2/g/np.tanh(wk*waterDepth)
+
+t = np.arange(maxIt+1)*dt
+initialize = np.zeros((maxIt+1))
+waveAmpTime = [t,initialize]
+maxRampIT=int(np.round(rampTime/dt))
+
+iiter = np.size(waveDir)
+tmp     = np.sqrt(np.matlib.repmat(wA,iiter,1)*np.matlib.repmat(dw,iiter,1)*np.transpose([waveSpread,]))
+c1 = np.matlib.repmat(wF,iiter,1)
+for i in range(maxRampIT):    
+    t       = (i)*dt
+    #tmp     = np.sqrt(np.matlib.repmat(wA,iiter,1)*np.matlib.repmat(dw,iiter,1)*np.transpose([waveSpread,]))
+    tmp1    = tmp*np.real(np.exp(((-1)**0.5)*(c1*t + phase)))  
+    waveAmpTime[1][i]   = np.sum(np.sum(tmp1, axis=1)*(1+np.cos(np.pi+np.pi*(i)/maxRampIT))/2)
+for i in range(maxRampIT, maxIt+1):
+    t       = (i)*dt
+    #tmp     = np.sqrt(np.matlib.repmat(wA,iiter,1)*np.matlib.repmat(dw,iiter,1)*np.transpose([waveSpread,]))
+    tmp1    = tmp*np.real(np.exp(((-1)**0.5)*(c1*t + phase)))
+    waveAmpTime[1][i]    = np.sum(tmp1)
+
+elapsed1 = time.time() - t12
+print(elapsed1)
+print(elapsed1+elapsed6)
+# elapsed6 = time.time() - t11
+# print(elapsed6)
+#result8 = np.conj(np.transpose(np.loadtxt('./freq.txt')))
+#np.testing.assert_allclose(freq, result8)
+#result7 = np.conj(np.transpose(np.loadtxt('./S_f.txt')))
+#np.testing.assert_allclose(S_f, result7)
+#result6 = np.conj(np.transpose(np.loadtxt('./wF1.txt')))
+#np.testing.assert_allclose(wF1, result6)
+#result5 = np.conj(np.transpose(np.loadtxt('./SF.txt')))
+#np.testing.assert_allclose(SF, result5)
+#result4 = np.conj(np.transpose(np.loadtxt('./wF.txt')))
+#np.testing.assert_allclose(wF, result4)
+#result3 = np.conj(np.transpose(np.loadtxt('./dw.txt')))
+#np.testing.assert_allclose(dw, result3)
+#result2 = np.conj(np.transpose(np.loadtxt('./wA.txt')))
+#np.testing.assert_allclose(wA, result2)
+#result1 = np.conj(np.transpose(np.loadtxt('./phase.txt')))
+#np.testing.assert_allclose(phase, result1)
+result =  np.conj(np.transpose(np.loadtxt('./waveAmpTime.txt')))
+np.testing.assert_allclose(waveAmpTime, result)
