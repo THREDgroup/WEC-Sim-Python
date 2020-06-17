@@ -20,7 +20,12 @@ class TestWave(unittest.TestCase):
         print("teardownClass")
     
     def setUp(self):
+        """
+        set up test cases for each wave type.
+        each test cases have dependent test data files in the testData directory
+        """
         print("setUp")
+        
         self.noWave_1 = WaveClass('noWave')
         
         self.noWaveCIC_1 = WaveClass('noWaveCIC')
@@ -56,7 +61,7 @@ class TestWave(unittest.TestCase):
         self.noWave_1.setWaveProps(wDepth)
         self.assertEqual(self.noWave_1.wH, 0)
         
-        wDepth = 'infinite'
+        # wDepth = 'infinite'
         self.noWaveCIC_1.wT = 'NOT DEFINED'
         self.noWaveCIC_1.bemFreq = [5.19999512307279,0.0199999977946844]
         self.noWaveCIC_1.setWaveProps(wDepth)
@@ -64,36 +69,36 @@ class TestWave(unittest.TestCase):
         self.assertEqual(self.noWaveCIC_1.wF, 0.0199999977946844)
         self.assertIsNone(np.testing.assert_allclose(self.noWaveCIC_1.wT, [314.159300000000]))
         
-        wDepth = 'infinite'
+        # wDepth = 'infinite'
         self.noWaveCIC_2.wT = 8
         self.noWaveCIC_2.bemFreq = [5.19999512307279,0.0199999977946844]
         self.noWaveCIC_2.setWaveProps(wDepth)
         self.assertEqual(self.noWaveCIC_2.wH, 0)
         self.assertIsNone(np.testing.assert_allclose(self.noWaveCIC_2.wF, [0.785398163397448]))
         
-        wDepth = 'infinite'
+        # wDepth = 'infinite'
         self.noWaveCIC_3.wF = 0.785398163397448
         self.noWaveCIC_3.bemFreq = [5.19999512307279,0.0199999977946844]
         self.noWaveCIC_3.setWaveProps(wDepth)
         self.assertEqual(self.noWaveCIC_3.wH, 0)
         self.assertIsNone(np.testing.assert_allclose(self.noWaveCIC_3.wT, [8]))
         
-        wDepth = 'infinite'
+        # wDepth = 'infinite'
         self.regular_1.setWaveProps(wDepth)
         self.assertEqual(self.regular_1.deepWaterWave, 1)
         self.assertEqual(self.regular_1.waterDepth, 200)
         
-        wDepth = 'infinite'
+        # wDepth = 'infinite'
         self.regularCIC_1.setWaveProps(wDepth)
         self.assertEqual(self.regularCIC_1.deepWaterWave, 1)
         self.assertEqual(self.regularCIC_1.waterDepth, 200)
         
-        wDepth = 'infinite'
+        # wDepth = 'infinite'
         self.irregular_1.setWaveProps(wDepth)
         self.assertEqual(self.irregular_1.deepWaterWave, 1)
         self.assertEqual(self.irregular_1.waterDepth, 200)
         
-        wDepth = 'infinite'
+        # wDepth = 'infinite'
         self.spectrumImport_1.setWaveProps(wDepth)
         self.assertEqual(self.spectrumImport_1.deepWaterWave, 1)
         self.assertEqual(self.spectrumImport_1.waterDepth, 200)
@@ -105,6 +110,8 @@ class TestWave(unittest.TestCase):
     def test_setWavePhase(self):
         """
         Test SetWavePhase
+        for single wave direction it creates single array of phase values
+        for multiple wave direction it creates multiple arrays of phase values
         """
         
         print("SetWavePhase")
@@ -162,21 +169,21 @@ class TestWave(unittest.TestCase):
         result =  [0.0628797426165224]
         self.assertIsNone(np.testing.assert_allclose(self.noWave_1.wk, result))
         
-        g = 9.81
+        # g = 9.81
         self.regular_1.wF = np.array([0.785398163397448])
         self.regular_1.deepWaterWave = 1
         self.regular_1.waveNumber(g)
         result =  [0.0628797426165224]
         self.assertIsNone(np.testing.assert_allclose(self.regular_1.wk, result))
         
-        g = 9.81
+        # g = 9.81
         self.irregular_1.wF = np.array([0.525743641856087,0.541511547017433,0.551933697209493,0.559973049643924,0.566624163384781])
         self.irregular_1.deepWaterWave = 1
         self.irregular_1.waveNumber(g)
         result =  [0.0281759813406831,0.0298914123907455,0.0310530893083935,0.0319643033973004,0.0327281286984203]  
         self.assertIsNone(np.testing.assert_allclose(self.irregular_1.wk, result))
         
-        g = 9.81
+        # g = 9.81
         self.irregular_2.wF = np.array([0.525743641856087,0.541511547017433,0.551933697209493,0.559973049643924,0.566624163384781])
         self.irregular_2.deepWaterWave = 0
         self.irregular_2.waterDepth = 150
@@ -184,7 +191,7 @@ class TestWave(unittest.TestCase):
         result =  [0.0281879608383217,0.0298990180718354,0.0310586687570460,0.0319686743818314,0.0327316884302928]  
         self.assertIsNone(np.testing.assert_allclose(self.irregular_2.wk, result))
         
-        g = 9.81
+        # g = 9.81
         self.spectrumImport_1.wF = np.conj(np.transpose(np.loadtxt("./testData/spectrumImport_1_test/wF.txt")))
         self.spectrumImport_1.deepWaterWave = 1
         self.spectrumImport_1.waveNumber(g)
@@ -219,8 +226,8 @@ class TestWave(unittest.TestCase):
         self.assertIsNone(np.testing.assert_allclose(self.irregular_1.wA, result4))
         self.assertIsNone(np.testing.assert_allclose(self.irregular_1.Pw, [16836.8900561635]))
         
-        g = 9.81
-        rho = 1000
+        # g = 9.81
+        # rho = 1000
         self.irregular_2.wF = np.array([0.525743641856087,0.541511547017433,0.551933697209493,0.559973049643924])
         self.irregular_2.wT = 8
         self.irregular_2.wH = 2.5
@@ -235,8 +242,8 @@ class TestWave(unittest.TestCase):
         self.assertIsNone(np.testing.assert_allclose(self.irregular_2.wA, result2))
         self.assertIsNone(np.testing.assert_allclose(self.irregular_2.Pw, [12753.4644033446]))
         
-        g = 9.81
-        rho = 1000
+        # g = 9.81
+        # rho = 1000
         self.irregular_3.wF = np.array([0.525743641856087,0.541511547017433,0.551933697209493,0.559973049643924])
         self.irregular_3.wT = 8
         self.irregular_3.wH = 2.5
@@ -252,8 +259,8 @@ class TestWave(unittest.TestCase):
         self.assertIsNone(np.testing.assert_allclose(self.irregular_3.wA, result2))
         self.assertIsNone(np.testing.assert_allclose(self.irregular_3.Pw, [2089159.87712874]))
         
-        g = 9.81
-        rho = 1000
+        # g = 9.81
+        # rho = 1000
         self.spectrumImport_1.freqDisc = 'Imported'
         self.spectrumImport_1.wF = np.conj(np.transpose(np.loadtxt("./testData/spectrumImport_1_test/wF.txt")))
         self.spectrumImport_1.spectrumDataFile = "./testData/spectrumImport_1_test/spectrumData.txt"
@@ -317,8 +324,8 @@ class TestWave(unittest.TestCase):
         result = [47863.9094340186]
         self.assertIsNone(np.testing.assert_allclose(self.regular_1.wP, result))
         
-        g  = 9.81
-        rho = 1000
+        # g  = 9.81
+        # rho = 1000
         self.regularCIC_1.deepWaterWave = 0
         self.regularCIC_1.wA = np.array([1.25])
         self.regularCIC_1.wT = np.array([8])
@@ -351,9 +358,6 @@ class TestWave(unittest.TestCase):
         result = [[0,0.1,0.2,0.3,0.4],[0,-0.0348281635986628,-0.0720229579155233,-0.0741609426395505,-0.0760625424978483]]
         self.assertIsNone(np.testing.assert_allclose(self.irregular_1.waveAmpTime, result))
         
-        
-        #Commenting out because it takes 2 seconds to run the test.
-        #Result: OK
         rampTime = 100
         dt = 0.1
         maxIt = 2000
@@ -376,8 +380,6 @@ class TestWave(unittest.TestCase):
     def test_waveElevUser(self):
         print("waveElevUser")
         
-        #Commenting out because it takes 2 seconds to run the test.
-        #Result: OK
         rampTime = 100
         dt = 0.1
         maxIt = 4000
@@ -391,10 +393,17 @@ class TestWave(unittest.TestCase):
         
         
     def test_waveSetup(self):
+        """
+        commented repeated code but left it as commented so that we can see the values for each tests.
+        since only the max and the min value of beam frequency is used in the actual code,
+        I changed beam frequency to an array with two value for faster computation
+        However, actual beam frequency can be used to test for confirmation.
+
+        """
         print("waveSetup")
         
-        #wType = 'noWave'
-        #bemFreq = np.array(np.loadtxt('regular_1_test/beamFreq.txt'))
+        # wType = 'noWave'
+        # bemFreq = np.array(np.loadtxt('regular_1_test/beamFreq.txt'))
         bemFreq = [5.19999512307279,0.0199999977946844]
         wDepth = 'infinite'
         rampTime = 100
@@ -411,39 +420,45 @@ class TestWave(unittest.TestCase):
         self.assertIsNone(np.testing.assert_allclose(self.noWave_1.wF, result2))
         
         
-        #wType = 'regular'
-        #bemFreq = np.array(np.loadtxt('regular_1_test/beamFreq.txt'))
-        bemFreq = [5.19999512307279,0.0199999977946844]
-        wDepth = 'infinite'
-        rampTime = 100
-        dt = 0.1
-        maxIt = 2000
-        g = 9.81
-        rho = 1000
-        endTime = 200
+        # wType = 'regular'
+        # bemFreq = np.array(np.loadtxt('regular_1_test/beamFreq.txt'))
+        # bemFreq = [5.19999512307279,0.0199999977946844]
+        # wDepth = 'infinite'
+        # rampTime = 100
+        # dt = 0.1
+        # maxIt = 2000
+        # g = 9.81
+        # rho = 1000
+        # endTime = 200
         self.regular_1.wT = np.array([8])
         self.regular_1.wH = np.array([2.5])
-        self.regular_1.wavegauge1loc = [0,0]
-        self.regular_1.wavegauge2loc = [0,0]
-        self.regular_1.wavegauge3loc = [0,0]
+        self.regular_1.wavegauge1loc = [5,5]
+        self.regular_1.wavegauge2loc = [10,0]
+        self.regular_1.wavegauge3loc = [0,-10]
         self.regular_1.waveDir = [0]
         self.regular_1.waveSetup(bemFreq,wDepth,rampTime,dt,maxIt,g, rho, endTime)
-        result1=  np.conj(np.transpose(np.array(np.loadtxt('./testData/regular_1_test/waveAmpTime.txt'))))
+        result1 =  np.conj(np.transpose(np.array(np.loadtxt('./testData/regular_1_test/waveAmpTime.txt'))))
         self.assertIsNone(np.testing.assert_allclose(self.regular_1.waveAmpTime, result1))
-        result2 =  [0.785398163397448]
-        self.assertIsNone(np.testing.assert_allclose(self.regular_1.wF, result2))
+        result2 =  np.conj(np.transpose(np.array(np.loadtxt('./testData/regular_1_test/waveAmpTime1.txt'))))
+        self.assertIsNone(np.testing.assert_allclose(self.regular_1.waveAmpTime1, result2))
+        result3 =  np.conj(np.transpose(np.array(np.loadtxt('./testData/regular_1_test/waveAmpTime2.txt'))))
+        self.assertIsNone(np.testing.assert_allclose(self.regular_1.waveAmpTime2, result3))
+        result4 =  np.conj(np.transpose(np.array(np.loadtxt('./testData/regular_1_test/waveAmpTime3.txt'))))
+        self.assertIsNone(np.testing.assert_allclose(self.regular_1.waveAmpTime3, result4))
+        result5 =  [0.785398163397448]
+        self.assertIsNone(np.testing.assert_allclose(self.regular_1.wF, result5))
         
         
-        #wType = 'regularCIC'
-        #bemFreq = np.array(np.loadtxt('regularCIC_1_test/beamFreq.txt'))
-        bemFreq = [5.19999512307279,0.0199999977946844]
-        wDepth = 'infinite'
-        rampTime = 100
-        dt = 0.1
-        maxIt = 2000
-        g = 9.81
-        rho = 1000
-        endTime = 200
+        # wType = 'regularCIC'
+        # bemFreq = np.array(np.loadtxt('regularCIC_1_test/beamFreq.txt'))
+        # bemFreq = [5.19999512307279,0.0199999977946844]
+        # wDepth = 'infinite'
+        # rampTime = 100
+        # dt = 0.1
+        # maxIt = 2000
+        # g = 9.81
+        # rho = 1000
+        # endTime = 200
         self.regularCIC_1.wT = np.array([8])
         self.regularCIC_1.wH = np.array([2.5])
         self.regularCIC_1.wavegauge1loc = [0,0]
@@ -456,22 +471,15 @@ class TestWave(unittest.TestCase):
         result2 =  [0.785398163397448]
         self.assertIsNone(np.testing.assert_allclose(self.regularCIC_1.wF, result2))
                
-        
-        #Commenting out because it takes 2 seconds to run the test.
-        #Result: OK
-        #takes 2 seconds because numFreq_interp = 500000
-        #if we decrease value of numFreq_interp, we can make it faster.
-        #irreggular_1.py file shows time took for each function
-        
-        #bemFreq = np.array(np.loadtxt('irregular_1_test/bemFreq.txt')[0]
-        bemFreq = [5.19999512307279,0.0199999977946844]
-        wDepth = 'infinite'
-        rampTime = 100
-        dt = 0.1
-        maxIt = 2000
-        g = 9.81
-        rho = 1000
-        endTime = 200
+        # bemFreq = np.array(np.loadtxt('irregular_1_test/bemFreq.txt')[0]
+        # bemFreq = [5.19999512307279,0.0199999977946844]
+        # wDepth = 'infinite'
+        # rampTime = 100
+        # dt = 0.1
+        # maxIt = 2000
+        # g = 9.81
+        # rho = 1000
+        # endTime = 200
         self.irregular_1.freqRange = []
         self.irregular_1.freqDisc = 'EqualEnergy'
         self.irregular_1.numFreq = 500
@@ -481,18 +489,18 @@ class TestWave(unittest.TestCase):
         self.irregular_1.spectrumType = 'BS'
         self.irregular_1.waveDir = [0]
         self.irregular_1.waveSpread = [1]
-        self.irregular_1.wavegauge1loc = [0,0]
-        self.irregular_1.wavegauge2loc = [0,0]
-        self.irregular_1.wavegauge3loc = [0,0]
+        self.irregular_1.wavegauge1loc = [5,5]
+        self.irregular_1.wavegauge2loc = [10,0]
+        self.irregular_1.wavegauge3loc = [0,-10]
         self.irregular_1.waveSetup(bemFreq,wDepth,rampTime,dt,maxIt,g, rho, endTime)
-        result = np.conj(np.transpose(np.array(np.loadtxt('./testData/irregular_1_test/waveAmpTime.txt'))))
-        self.assertIsNone(np.testing.assert_allclose(self.irregular_1.waveAmpTime, result))
-        
-        
-        #Commenting out because it takes 3 seconds to run the test.
-        #RuntimeWarning: overflow encountered in sinh will show up because the
-        #value of the sinh turned to infinite
-        #Result: OK
+        result1 = np.conj(np.transpose(np.array(np.loadtxt('./testData/irregular_1_test/waveAmpTime.txt'))))
+        self.assertIsNone(np.testing.assert_allclose(self.irregular_1.waveAmpTime, result1))
+        result2 = np.conj(np.transpose(np.array(np.loadtxt('./testData/irregular_1_test/waveAmpTime1.txt'))))
+        self.assertIsNone(np.testing.assert_allclose(self.irregular_1.waveAmpTime1, result2))
+        result3 = np.conj(np.transpose(np.array(np.loadtxt('./testData/irregular_1_test/waveAmpTime2.txt'))))
+        self.assertIsNone(np.testing.assert_allclose(self.irregular_1.waveAmpTime2, result3))
+        result4 = np.conj(np.transpose(np.array(np.loadtxt('./testData/irregular_1_test/waveAmpTime3.txt'))))
+        self.assertIsNone(np.testing.assert_allclose(self.irregular_1.waveAmpTime3, result4))
         
         bemFreq = [5.19999512307279,0.0199999977946844]
         wDepth = 150
@@ -519,18 +527,15 @@ class TestWave(unittest.TestCase):
         self.assertIsNone(np.testing.assert_allclose(self.irregular_2.waveAmpTime, result))
         self.assertIsNone(np.testing.assert_allclose(self.irregular_2.Pw, 128939.416506839))
         
-        
-        #Commenting out because it takes 2 seconds to run the test.
-        #Result: OK
-        
-        bemFreq = [5.19999512307279,0.0199999977946844]
+
+        # bemFreq = [5.19999512307279,0.0199999977946844]
         wDepth = 'infinite'
-        rampTime = 100
-        dt = 0.1
-        maxIt = 2000
-        g = 9.81
-        rho = 1000
-        endTime = 200
+        # rampTime = 100
+        # dt = 0.1
+        # maxIt = 2000
+        # g = 9.81
+        # rho = 1000
+        # endTime = 200
         self.irregular_3.freqRange = [0.01,6]
         self.irregular_3.freqDisc = 'EqualEnergy'
         self.irregular_3.numFreq = 500
@@ -547,23 +552,15 @@ class TestWave(unittest.TestCase):
         result = np.conj(np.transpose(np.array(np.loadtxt('./testData/irregular_3_test/waveAmpTime.txt'))))
         self.assertIsNone(np.testing.assert_allclose(self.irregular_3.waveAmpTime, result))
         
-        
-        
-        #Commenting out because it takes 2 seconds to run the test.
-        #Result: OK
-        #takes 2 seconds because numFreq_interp = 500000
-        #if we decrease value of numFreq_interp, we can make it faster.
-        #irreggular_1.py file shows time took for each function
-        
-        #bemFreq = np.array(np.loadtxt('irregular_1_test/bemFreq.txt')[0]
-        bemFreq = [5.19999512307279,0.0199999977946844]
-        wDepth = 'infinite'
-        rampTime = 100
-        dt = 0.1
-        maxIt = 2000
-        g = 9.81
-        rho = 1000
-        endTime = 200
+        # bemFreq = np.array(np.loadtxt('irregular_1_test/bemFreq.txt')[0]
+        # bemFreq = [5.19999512307279,0.0199999977946844]
+        # wDepth = 'infinite'
+        # rampTime = 100
+        # dt = 0.1
+        # maxIt = 2000
+        # g = 9.81
+        # rho = 1000
+        # endTime = 200
         self.irregular_4.freqRange = []
         self.irregular_4.freqDisc = 'EqualEnergy'
         self.irregular_4.numFreq = 500
@@ -580,14 +577,14 @@ class TestWave(unittest.TestCase):
         result = np.conj(np.transpose(np.array(np.loadtxt('./testData/irregular_4_test/waveAmpTime.txt'))))
         self.assertIsNone(np.testing.assert_allclose(self.irregular_4.waveAmpTime, result))
         
-        bemFreq = [5.19999512307279,0.0199999977946844]
-        wDepth = 'infinite'
-        rampTime = 100
-        dt = 0.1
-        maxIt = 2000
-        g = 9.81
-        rho = 1000
-        endTime = 200
+        # bemFreq = [5.19999512307279,0.0199999977946844]
+        # wDepth = 'infinite'
+        # rampTime = 100
+        # dt = 0.1
+        # maxIt = 2000
+        # g = 9.81
+        # rho = 1000
+        # endTime = 200
         self.irregular_5.freqRange = []
         self.irregular_5.freqDisc = 'EqualEnergy'
         self.irregular_5.numFreq = 500
@@ -604,18 +601,14 @@ class TestWave(unittest.TestCase):
         result = np.conj(np.transpose(np.array(np.loadtxt('./testData/irregular_5_test/waveAmpTime.txt'))))
         self.assertIsNone(np.testing.assert_allclose(self.irregular_5.waveAmpTime, result))
         
-        
-        #Commenting out because it takes 2 seconds to run the test.
-        #Result: OK
-        
-        wType = 'spectrumImport'
-        bemFreq = [5.19999512307279,0.0199999977946844]
-        wDepth = 'infinite'
-        rampTime = 100
-        dt = 0.1
-        maxIt = 2000
-        g = 9.81
-        rho = 1000
+        # wType = 'spectrumImport'
+        # bemFreq = [5.19999512307279,0.0199999977946844]
+        # wDepth = 'infinite'
+        # rampTime = 100
+        # dt = 0.1
+        # maxIt = 2000
+        # g = 9.81
+        # rho = 1000
         endTime = 400
         self.spectrumImport_1.freqRange = []
         self.spectrumImport_1.spectrumDataFile = "./testData/spectrumImport_1_test/spectrumData.txt"
@@ -629,18 +622,14 @@ class TestWave(unittest.TestCase):
         result =  np.conj(np.transpose(np.loadtxt('./testData/spectrumImport_1_test/waveAmpTime.txt')))
         self.assertIsNone(np.testing.assert_allclose(self.spectrumImport_1.waveAmpTime, result))
         
-        
-        #Commenting out because it takes 2 seconds to run the test.
-        #Result: OK
-        
-        bemFreq = [5.19999512307279,0.0199999977946844]
-        wDepth = 'infinite'
-        rampTime = 100
-        dt = 0.1
+        # bemFreq = [5.19999512307279,0.0199999977946844]
+        # wDepth = 'infinite'
+        # rampTime = 100
+        # dt = 0.1
         maxIt = 4000
-        g = 9.81
-        rho = 1000
-        endTime = 400
+        # g = 9.81
+        # rho = 1000
+        # endTime = 400
         self.etaImport_1.etaDataFile = './testData/etaImport_1_test/etaData.txt'
         self.etaImport_1.waveSetup(bemFreq,wDepth,rampTime,dt,maxIt,g, rho, endTime)
         result1 = np.conj(np.transpose(np.loadtxt("./testData/etaImport_1_test/waveAmpTime.txt")))
@@ -648,14 +637,14 @@ class TestWave(unittest.TestCase):
         result2 = np.conj(np.transpose(np.loadtxt("./testData/etaImport_1_test/waveAmpTime1.txt")))
         self.assertIsNone(np.testing.assert_allclose(self.etaImport_1.waveAmpTime1, result2))
         
-        bemFreq = [5.19999512307279,0.0199999977946844]
-        wDepth = 'infinite'
-        rampTime = 100
-        dt = 0.1
-        maxIt = 4000
-        g = 9.81
-        rho = 1000
-        endTime = 400
+        # bemFreq = [5.19999512307279,0.0199999977946844]
+        # wDepth = 'infinite'
+        # rampTime = 100
+        # dt = 0.1
+        # maxIt = 4000
+        # g = 9.81
+        # rho = 1000
+        # endTime = 400
         self.etaImport_2.etaDataFile = './testData/etaImport_1_test/etaData.mat'
         self.etaImport_2.waveSetup(bemFreq,wDepth,rampTime,dt,maxIt,g, rho, endTime)
         result1 = np.conj(np.transpose(np.loadtxt("./testData/etaImport_1_test/waveAmpTime.txt")))

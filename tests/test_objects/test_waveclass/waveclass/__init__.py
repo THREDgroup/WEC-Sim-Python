@@ -91,8 +91,9 @@ class WaveClass:
         etaDataFile = 'NOT DEFINED'
         
         #freqRange - Min and max frequency for irregular waves. 
-        #2x1 vector, rad/s, (default = frequency range in BEM data)
+        #array with two values, rad/s, (default = frequency range in BEM data)
         #(Default = [])
+        #eg. [0.3,0.5]
         freqRange = []
         
         #numFreq - of interpolated wave frequencies 
@@ -102,14 +103,18 @@ class WaveClass:
         numFreq = 0
         
         #waveDir - [deg] Incident wave direction(s)
-        #Should be defined as a column vector for more than one wave direction        
+        #Should be defined as a column vector for more than one wave direction 
+        #For multiple wave direction it will be an array of angle in degree
+        #[20,45,60,80]
         #(Default = 0)
-        waveDir = 0
+        waveDir = [0]
         
         #waveSpread - Wave Spread probability associated with wave direction(s)
         #Should be defined as a column vector for more than one wave direction
-        #(Default = 1)
-        waveSpread = 1
+        #For multiple wave direction it will be an array that corresponds to 
+        #wave direction [20,45,60,80]
+        #(Default = [1])
+        waveSpread = [1]
         
         #viz - Dictionary defining visualization options
         #Should be a dictionary containing the fields 'numPointsX' and 'numPointsY'. 
@@ -268,13 +273,15 @@ class WaveClass:
     def plotEta(self, *rampTime):
         """
         Plot wave elevation time-history
+        This method is for our visual understanding. 
+        Does not get used in any method
         rampTime input argument is optional
 
         """
         plt.figure(figsize=(10,8))
         plt.plot(self.waveAmpTime[0],self.waveAmpTime[1])
         plt.title('Wave Surfave Elevation')
-        if np.size(rampTime) == 1:
+        if np.size(rampTime) == 1: # If ramptime is given we can specify it but will generate similar graph
             plt.plot(np.array(rampTime),np.array(1.5*min(self.waveAmpTime[1]),1.5*max(self.waveAmpTime[1])))
             plt.title(['Wave Surfave Elevation, Ramp Time ' + str(rampTime) +' (s)'])
         plt.xlabel('Time (s)')
@@ -283,6 +290,8 @@ class WaveClass:
     def plotSpectrum(self):
         """
         Plot wave spetrum
+        This method is for our visual understanding. 
+        Does not get used in any method
 
         """
         m0 = np.trapz(self.wS, x = self.wF)
@@ -304,49 +313,50 @@ class WaveClass:
     def waveSetup(self,bemFreq,wDepth,rampTime,dt,maxIt,g,rho,endTime):
         """
         Set up wave for all wave type. Input parameters are from simulationClass.py
+        This method is the most important method to check out in this class
 
         """
-        self.bemFreq = bemFreq
-        self.setWaveProps(wDepth)
+        self.bemFreq = bemFreq  # array of the beam frequency from BEMIO. Only the max and min values gets used.
+        self.setWaveProps(wDepth) # method called to set up wave properties.
         if (self.wType == 'noWave') or (self.wType == 'noWaveCIC'):
             if np.size(self.wF) == 0:
                 self.wF = 2*np.pi/self.wT
-            self.waveNumber(g)
+            self.waveNumber(g) # used to set self.wk
             self.wA = self.wH/2
-            self.waveElevNowave(maxIt,dt)
+            self.waveElevNowave(maxIt,dt) # method called to set wave elevation
         elif (self.wType == 'regular') or (self.wType == 'regularCIC'):
             if np.size(self.wF) == 0:
                 self.wF = 2*np.pi/self.wT
             self.wA = self.wH/2
-            self.waveNumber(g)
-            self.waveElevReg(rampTime, dt, maxIt)
-            self.wavePowerReg(g,rho)
+            self.waveNumber(g) # used to set self.wk
+            self.waveElevReg(rampTime, dt, maxIt) # method called to set wave elevation
+            self.wavePowerReg(g,rho) # method called to find wave power
         elif (self.wType == 'irregular') or (self.wType == 'spectrumImport'):
-            WFQSt=np.min(bemFreq)
-            WFQEd=np.max(bemFreq)
-            if np.size(self.freqRange) != 0:
-                if self.freqRange[0] > WFQSt and self.freqRange[0] > 0:
-                    WFQSt = self.freqRange[0]
+            WFQSt = np.min(bemFreq)
+            WFQEd = np.max(bemFreq)
+            if np.size(self.freqRange) != 0: # frequency range that can be set bu user. eg.[0.2, 0.5]
+                if self.freqRange[0] > WFQSt and self.freqRange[0] > 0: # if minimum frequency range value set by user is greater than minimum beam frequency and 0
+                    WFQSt = self.freqRange[0]   # set new minimum beam frequency provided by user
                 else:
                     warnings.warn("Min frequency range outside BEM data, min frequency set to min BEM frequency",DeprecationWarning)
-                if self.freqRange[1] < WFQEd and self.freqRange[1] > WFQSt:
-                    WFQEd = self.freqRange[1]
+                if self.freqRange[1] < WFQEd and self.freqRange[1] > WFQSt: # if maximum frequency range value set by user is lower than maximum beam frequency but greater than minimum beam frequency
+                    WFQEd = self.freqRange[1]   # set new maximum beam frequncy provided by user
                 else:
                     warnings.warn("Max frequency range outside BEM data, max frequency set to max BEM frequency",DeprecationWarning)
-            if self.freqDisc == 'Traditional':    
-                if np.size(self.numFreq) == 0:
+            if self.freqDisc == 'Traditional':    # Traditional method of computing. Refer to theory of waveclass provided by WEC-Sim to understand the theory.
+                if np.size(self.numFreq) == 0:  # numfreq for Traditional is 1000 for default
                     self.numFreq = 1000
                 self.wF = np.arange(WFQSt,WFQEd+((WFQEd-WFQSt)/(self.numFreq-1)),(WFQEd-WFQSt)/(self.numFreq-1))
                 self.dw = np.ones(shape=(self.numFreq,1))*(WFQEd-WFQSt)/(self.numFreq-1)
-            elif self.freqDisc == 'EqualEnergy':
-                numFreq_interp = 500000
+            elif self.freqDisc == 'EqualEnergy':    # Default way of computing irregular wave. Refer to theory of waveclass provided by WEC-Sim to understand the theory.
+                numFreq_interp = 500000     # number of interpolation that will set array size for SF and S_f used in irregWaveSpectrum method. Lowering this value might decrease the run time but accuracy will decrease
                 self.wF = np.arange(WFQSt,WFQEd+((WFQEd-WFQSt)/numFreq_interp),(WFQEd-WFQSt)/numFreq_interp)
                 self.dw = np.mean(np.diff(self.wF))
-                if np.size(self.numFreq) == 0:
+                if np.size(self.numFreq) == 0:  # numfreq for EqualEnergy is 500 for default
                     self.numFreq = 500
-            elif self.freqDisc == 'Imported':
-                data = self.readData(self.spectrumDataFile)
-                freq_data = data[0]
+            elif self.freqDisc == 'Imported': # set from setWaveProps method
+                data = self.readData(self.spectrumDataFile) # call on readData method to get files in both mat file and txt file
+                freq_data = data[0] # the first row out of the three rows in spectrum data file is frequency
                 self.wF = np.array([i*2*np.pi for i in freq_data 
                                     if i>=min(bemFreq)/2/np.pi and i<=max(bemFreq)/2/np.pi])
                 self.numFreq = len(self.wF)
@@ -354,37 +364,39 @@ class WaveClass:
                 self.dw[0]= np.array(self.wF[1]-self.wF[0])
                 self.dw[1:self.numFreq-1]= np.array((self.wF[2:]-self.wF[:-2])/2)
                 self.dw[self.numFreq-1]= np.array(self.wF[-1]-self.wF[-2])
-            self.setWavePhase()
-            self.irregWaveSpectrum(g,rho)
-            self.waveNumber(g)
-            self.waveElevIrreg(rampTime, dt, maxIt, self.dw)
+            self.setWavePhase() # method called to generate wave phase. there can be multiple phase if there are more than one wave direction
+            self.irregWaveSpectrum(g,rho) # method called to calculate for different kinds of irregular wave calculation methods
+            self.waveNumber(g) # used to set self.wk
+            self.waveElevIrreg(rampTime, dt, maxIt, self.dw) # method called to set wave elevation
         elif self.wType == 'etaImport':
             #Import 'etaImport' time-series here and interpolate
             data = self.readData(self.etaDataFile) #Import time-series
             t = np.arange(0,endTime+dt,dt)      #simulation time
-            self.waveElevUser(rampTime, dt, maxIt, data, t)
+            self.waveElevUser(rampTime, dt, maxIt, data, t) # method called to set wave elevation
             t2 = np.arange(maxIt+1)*dt
             initialZeros = np.zeros((maxIt+1))
-            self.waveAmpTime1 = [t2,initialZeros]
-            self.waveAmpTime2 = self.waveAmpTime1
-            self.waveAmpTime3 = self.waveAmpTime1
+            self.waveAmpTime1 = [t2,initialZeros] # set wave elevation as zeros since we just wants to look at imported data
+            self.waveAmpTime2 = self.waveAmpTime1 # set wave elevation as zeros since we just wants to look at imported data
+            self.waveAmpTime3 = self.waveAmpTime1 # set wave elevation as zeros since we just wants to look at imported data
 
     def setWaveProps(self,wDepth):
         """
         Sets wave properties
+        check for wave depth
+        check for wave type of noWave, noWaveCIC, and spectrumImport
 
         """
-        if wDepth == 'infinite':
-            self.deepWaterWave = 1
-            self.waterDepth = 200
+        if wDepth == 'infinite': # Can be 'infinite' or number. From BEMIO
+            self.deepWaterWave = 1  # means deep water
+            self.waterDepth = 200   # minimu water depth for deep water set
             print('\tInfinite water depth specified in BEM, "waves.waterDepth" set to 200m for vizualisation.\n')
         else:
-            self.deepWaterWave = 0
-            self.waterDepth = wDepth
+            self.deepWaterWave = 0  # means shallow water
+            self.waterDepth = wDepth # set it to specific water depth. Can cause warning when some calculations reach infinity
         if self.wType == 'noWave':
-            self.wH = 0
+            self.wH = 0     # set wave height as 0
         elif self.wType == 'noWaveCIC':
-            self.wH = 0
+            self.wH = 0     # set wave height as 0
             if np.size(self.wF) == 0 and self.wT == 'NOT DEFINED':
                 self.wF = np.min(self.bemFreq)
                 self.wT = 2*np.pi/self.wF
@@ -395,7 +407,7 @@ class WaveClass:
         elif self.wType == 'spectrumImport':
             self.wH = 0
             self.wT = 0
-            self.freqDisc = 'Imported'
+            self.freqDisc = 'Imported' # one of the type of freqDisc that used later in waveSetup method 
             self.spectrumType = 'spectrumImport'
              
     def waveNumber(self, g):
@@ -403,8 +415,8 @@ class WaveClass:
         Calculate wave number
 
         """
-        self.wk= self.wF**2/g
-        if self.deepWaterWave == 0:
+        self.wk= self.wF**2/g # general method of calculating wk
+        if self.deepWaterWave == 0: # calculate wk directly from specific water depth
             for i in range(100):
                 self.wk = self.wF**2/g/np.tanh(self.wk*self.waterDepth)
 
@@ -415,32 +427,34 @@ class WaveClass:
         
         """
         if file.endswith('.txt'):
-            data = np.conj(np.transpose(np.loadtxt(file)))
-        elif file.endswith('.mat'):
-            matFile = sio.loadmat(file)
+            data = np.conj(np.transpose(np.loadtxt(file))) # transforms data in to array no matter it was in vector form or array form
+        elif file.endswith('.mat'): # specific for MATLAB data file. Allows collaboration between MATLAB user and Python user.
+            matFile = sio.loadmat(file) 
             keys = list(matFile.keys())[-1]
-            data = np.conj(np.transpose(matFile[keys]))
+            data = np.conj(np.transpose(matFile[keys])) #  this transforms data in to array no matter it was in vector form or array form
         return data          
 
     def setWavePhase(self):
         """
         Sets the irregular wave's random phase
+        MATLAB and Python use same random number generator
+        multiple arrays of phase is not supported for regular wave as it was not supported in the WEC-Sim
 
         """
         if self.phaseSeed != 0:
             np.random.seed(self.phaseSeed) #Phase seed = 1,2,3,...,etc
         else:
-            np.random.seed(np.random.shuffle(self.phaseSeed))
-        if (self.freqDisc == 'EqualEnergy') or (self.freqDisc == 'Traditional'):
-            self.phase = 2*np.pi*np.conj(np.transpose(np.random.rand(self.numFreq,np.size(self.waveDir))))
+            np.random.seed(np.random.shuffle(self.phaseSeed)) # shuffle phase seed
+        if (self.freqDisc == 'EqualEnergy') or (self.freqDisc == 'Traditional'): 
+            self.phase = 2*np.pi*np.conj(np.transpose(np.random.rand(self.numFreq,np.size(self.waveDir)))) # for multiple wave direction, multiple arrays of phase will be made
         elif (self.freqDisc == 'Imported'):
             data = self.readData(self.spectrumDataFile)
-            if len(data) == 3:
+            if len(data) == 3: # if imported spectrum data file is correct it should have 3 rows of data
                 freq_data = data[0]
                 self.phase = np.array([[x for x,i in zip(data[2],freq_data) 
                                        if i>=min(self.bemFreq)/2/np.pi and i<=max(self.bemFreq)/2/np.pi]])
             else:
-                self.phase = 2*np.pi*np.random.rand(1,self.numFreq)
+                self.phase = 2*np.pi*np.random.rand(1,self.numFreq) # if imported spectrum data is faulty, phase will be calculated randomly
             
     def waveElevNowave(self,maxIt,dt):
         """
@@ -449,49 +463,49 @@ class WaveClass:
         """
         t = np.arange(maxIt+1)*dt
         initialZeros = np.zeros((maxIt+1))
-        self.waveAmpTime = [t,initialZeros]
-        self.waveAmpTime1 = self.waveAmpTime
-        self.waveAmpTime2 = self.waveAmpTime
-        self.waveAmpTime3 = self.waveAmpTime
+        self.waveAmpTime = [t,initialZeros]     # since this is for no wave type wave height will be all zeros
+        self.waveAmpTime1 = self.waveAmpTime    # since this is for no wave type wave height will be all zeros
+        self.waveAmpTime2 = self.waveAmpTime    # since this is for no wave type wave height will be all zeros
+        self.waveAmpTime3 = self.waveAmpTime    # since this is for no wave type wave height will be all zeros
         
     def waveElevReg(self, rampTime, dt, maxIt):
         """
         Calculate regular wave elevation time history
+        modified so that it would compute waveAmpTime1, waveAmpTime2, 
+        waveAmpTime3 only when wave guage location is specified
         
         """
-        t = np.arange(maxIt+1)*dt
+        t = np.arange(maxIt+1)*dt # array of time with dt time steps
         self.waveAmpTime = [t,[]]
         if rampTime == 0:
             c1 = self.wF*t
             self.waveAmpTime[1]    = self.wA*np.cos(c1)
         else:
             maxRampIT = int(np.round(rampTime/dt))
-            t = np.arange(maxRampIT)*dt
-            t2 = np.arange(maxRampIT,maxIt+1)*dt
+            t = np.arange(maxRampIT)*dt # array of time with dt time steps until maxRampIT
+            t2 = np.arange(maxRampIT,maxIt+1)*dt # array of time with dt time steps from maxRampIT to the end
             c1 = self.wF*t
             c2 = self.wF*t2
             ad = (1+np.cos(np.pi+np.pi*np.arange(maxRampIT)/maxRampIT))/2
             self.waveAmpTime[1]    = np.append(self.wA*np.cos(c1)*ad, self.wA*np.cos(c2))
-        self.waveAmpTime1 = self.waveAmpTime
-        self.waveAmpTime2 = self.waveAmpTime
-        self.waveAmpTime3 = self.waveAmpTime
+        self.waveAmpTime1 = self.waveAmpTime # if wave guage location is not set, wave elevation is same as waveAmpTime
+        self.waveAmpTime2 = self.waveAmpTime # if wave guage location is not set, wave elevation is same as waveAmpTime
+        self.waveAmpTime3 = self.waveAmpTime # if wave guage location is not set, wave elevation is same as waveAmpTime
         if self.wavegauge1loc[0] != 0 or self.wavegauge1loc[1] != 0 or self.wavegauge2loc[0] != 0 or self.wavegauge2loc[1] != 0 or self.wavegauge3loc[0] != 0 or self.wavegauge3loc[1] != 0:
+            t = np.arange(maxIt+1)*dt # array of time with dt time steps
+            self.waveAmpTime1 = [t,[]] # set to empty array of wave elevation. If it is not set, error occurs
+            self.waveAmpTime2 = [t,[]] # set to empty array of wave elevation. If it is not set, error occurs
+            self.waveAmpTime3 = [t,[]] # set to empty array of wave elevation. If it is not set, error occurs
             if rampTime == 0:
-                c1 = self.wF*t
+                c1 = self.wF*t # multiple of array of frequency and time with dt time steps
                 c_cos = np.cos(self.waveDir[0]*np.pi/180)
                 c_sin = np.sin(self.waveDir[0]*np.pi/180)
                 self.waveAmpTime1[1]   = self.wA*np.cos(c1-self.wk*(self.wavegauge1loc[0]*c_cos + self.wavegauge1loc[1]*c_sin))
                 self.waveAmpTime2[1]   = self.wA*np.cos(c1-self.wk*(self.wavegauge2loc[0]*c_cos + self.wavegauge2loc[1]*c_sin))
                 self.waveAmpTime3[1]   = self.wA*np.cos(c1-self.wk*(self.wavegauge3loc[0]*c_cos + self.wavegauge3loc[1]*c_sin))
             else:
-                maxRampIT = int(np.round(rampTime/dt))
-                t = np.arange(maxRampIT)*dt
-                t2 = np.arange(maxRampIT,maxIt+1)*dt
-                c1 = self.wF*t
-                c2 = self.wF*t2
                 c_cos = np.cos(self.waveDir[0]*np.pi/180)
                 c_sin = np.sin(self.waveDir[0]*np.pi/180)
-                ad = (1+np.cos(np.pi+np.pi*np.arange(maxRampIT)/maxRampIT))/2
                 self.waveAmpTime1[1]   = np.append(self.wA*np.cos(c1-self.wk*(self.wavegauge1loc[0]*c_cos + self.wavegauge1loc[1]*c_sin))*ad, 
                                                    self.wA*np.cos(c2-self.wk*(self.wavegauge1loc[0]*c_cos + self.wavegauge1loc[1]*c_sin)))
                 self.waveAmpTime2[1]   = np.append(self.wA*np.cos(c1-self.wk*(self.wavegauge2loc[0]*c_cos + self.wavegauge2loc[1]*c_sin))*ad, 
@@ -514,6 +528,7 @@ class WaveClass:
     def irregWaveSpectrum(self,g,rho):
         """
         Calculate irregular wave spectrum vector
+        Check theory section in WEC-Sim documentation for a reference
         
         """
         freq = self.wF/(2*np.pi)
@@ -567,13 +582,23 @@ class WaveClass:
             m0 = np.trapz(np.abs(S_f),freq)
             numBins = self.numFreq+1
             a_targ = m0/numBins
-            SF = np.insert(integrate.cumtrapz(S_f,freq),0,0)
-            # modified method for solving wn
+            SF = np.insert(integrate.cumtrapz(S_f,freq),0,0) # integrate cumtrapz produce similar but not exact number that MATLAB produces. From my test E-6 decimal were same
+            # Modified method for solving wn
+            # start of the midified code:
+            
             wn = [np.argmin(np.abs(SF-(x+1)*a_targ))+1 for x in range(numBins)]
             self.wF = 2*np.pi*freq[wn[:len(wn)-1]]
             self.dw = np.append(self.wF[0]-2*np.pi*freq[0],np.diff(self.wF)) 
             self.wS = self.wS[wn[:len(wn)-1]]                         # Wave Spectrum [m^2-s/rad] 
-            # original method provided from WEC-Sim
+            
+            # end of the modified code:
+            
+            # The original method provided from WEC-Sim
+            # tested but commented due to slow computation speed. wn is only required variable for future computation
+            # if you want to check each values, comment the modified method uncomment the original method
+            
+            # start of the original code:
+            #
             # wn = [1]
             # tmpa = {}                 
             # a_targ_real = []                                       
@@ -596,22 +621,31 @@ class WaveClass:
             # self.wF = 2*np.pi*freq[wn[1:len(wn)-1]]
             # self.dw = np.append(self.wF[0]-2*np.pi*freq[wn[0]-1],np.diff(self.wF)) 
             # self.wS = self.wS[wn[1:len(wn)-1]]                         # Wave Spectrum [m^2-s/rad] 
-        self.wA = 2 * self.wS                                             # Wave Amplitude [m]
+            #
+            # end of the original code:
+                
+        self.wA = 2 * self.wS   # Wave Amplitude [m]
            
     def waveElevIrreg(self,rampTime,dt,maxIt,df):
         """
         Calculate irregular wave elevetaion time history
+        modified so that it would compute waveAmpTime1, waveAmpTime2, 
+        waveAmpTime3 only when wave guage location is specified
+        Unlike waveElevReg, waveElevIrreg can compute wave elevation for
+        multiple wave direction. multple wave direction produces multiple 
+        phase arrays and uses wave spread value that matches wave direction in 
+        each calculation.
         
         """
-        t = np.arange(maxIt+1)*dt
+        t = np.arange(maxIt+1)*dt # array of time with dt time steps
         initialZeros = np.zeros((maxIt+1))
         self.waveAmpTime = [t,initialZeros]
         maxRampIT=int(np.round(rampTime/dt))
         iiter = np.size(self.waveDir)
         tmp = np.sqrt(np.matlib.repmat(self.wA,iiter,1)*np.matlib.repmat(df,iiter,1)*np.transpose([self.waveSpread,]))
-        c1 = np.matlib.repmat(self.wF,iiter,1)
+        c1 = np.matlib.repmat(self.wF,iiter,1) # matlib.repmat method that repeats arrays which results in matrix form of arrays
         if rampTime == 0:
-            for i in range(maxIt+1):
+            for i in range(maxIt+1): # keeping for loop was faster than changing it to all matrix computation even when there were multiple wave direction
                 t       = (i)*dt
                 tmp1    = tmp*np.real(np.exp(((-1)**0.5)*(c1*t + self.phase)))  
                 self.waveAmpTime[1][i]    = np.sum(tmp1)
@@ -625,13 +659,17 @@ class WaveClass:
                 t       = (i)*dt
                 tmp1    = tmp*np.real(np.exp(((-1)**0.5)*(c1*t + self.phase)))  
                 self.waveAmpTime[1][i]    = np.sum(tmp1)
-        self.waveAmpTime1 = self.waveAmpTime
-        self.waveAmpTime2 = self.waveAmpTime
-        self.waveAmpTime3 = self.waveAmpTime        
+        self.waveAmpTime1 = self.waveAmpTime # if wave guage location is not set, wave elevation is same as waveAmpTime
+        self.waveAmpTime2 = self.waveAmpTime # if wave guage location is not set, wave elevation is same as waveAmpTime
+        self.waveAmpTime3 = self.waveAmpTime # if wave guage location is not set, wave elevation is same as waveAmpTime   
         if self.wavegauge1loc[0] != 0 or self.wavegauge1loc[1] != 0 or self.wavegauge2loc[0] != 0 or self.wavegauge2loc[1] != 0 or self.wavegauge3loc[0] != 0 or self.wavegauge3loc[1] != 0:
             c2 = np.matlib.repmat(self.wk,iiter,1)
             c_cos = np.cos(np.transpose([self.waveDir,])*np.pi/180)
             c_sin = np.sin(np.transpose([self.waveDir,])*np.pi/180)
+            t = np.arange(maxIt+1)*dt # array of time with dt time steps
+            self.waveAmpTime1 = [t,np.zeros((maxIt+1))] # set to arrays of zero get an error if it is not set individually
+            self.waveAmpTime2 = [t,np.zeros((maxIt+1))] # set to arrays of zero get an error if it is not set individually
+            self.waveAmpTime3 = [t,np.zeros((maxIt+1))] # set to arrays of zero get an error if it is not set individually
             if rampTime == 0:
                 for i in range(maxIt+1):
                     t       = (i)*dt
@@ -663,6 +701,7 @@ class WaveClass:
     def waveElevUser(self,rampTime,dt,maxIt,data,t):
         """
         Calculate imported wave elevation time history
+        used in ETAimport wave type
         
         """
         self.waveAmpTime = [[],[]]
