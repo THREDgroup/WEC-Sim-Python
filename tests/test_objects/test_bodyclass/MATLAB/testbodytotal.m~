@@ -28,111 +28,21 @@ body(2).geometryFile = 'plate.stl';
 body(2).mass = 'equilibrium';                   
 body(2).momOfInertia = [94419614.57 94407091.24 28542224.82];
 
-% body(1).bodyNumber = 1
-% body(1).readH5File();
-% simu.setupSim;
-% waves.waveSetup(body(1).hydroData.simulation_parameters.w, body(1).hydroData.simulation_parameters.water_depth, simu.rampTime, simu.dt, simu.maxIt, simu.g, simu.rho,  simu.endTime);
-% kk = 1
-% body(kk).hydroForcePre(waves.w,waves.waveDir,simu.CIkt,simu.CTTime,waves.numFreq,simu.dt,...
-%     simu.rho,simu.g,waves.type,waves.waveAmpTime,kk,simu.numWecBodies,simu.ssCalc,simu.nlHydro,simu.b2b,simu.yawNonLin);
-% % 
+body(1).bodyNumber = 1
+body(1).readH5File();
+simu.setupSim;
+waves.waveSetup(body(1).hydroData.simulation_parameters.w, body(1).hydroData.simulation_parameters.water_depth, simu.rampTime, simu.dt, simu.maxIt, simu.g, simu.rho,  simu.endTime);
+kk = 1;
+%body(1).regExcitation(waves.w,waves.waveDir,simu.rho,simu.g)
+
+
+body(kk).hydroForcePre(waves.w,waves.waveDir,simu.CIkt,simu.CTTime,waves.numFreq,simu.dt,...
+    simu.rho,simu.g,waves.type,waves.waveAmpTime,kk,simu.numWecBodies,simu.ssCalc,simu.nlHydro,simu.b2b);
+% 
 % for kk = 1:simu.numWecBodies
 %     body(kk).hydroForcePre(waves.w,waves.waveDir,simu.CIkt,simu.CTTime,waves.numFreq,simu.dt,...
 %         simu.rho,simu.g,waves.type,waves.waveAmpTime,kk,simu.numWecBodies,simu.ssCalc,simu.nlHydro,simu.b2b,simu.yawNonLin);
 % end; clear kk
 
-% Constraints: count & set orientation
-if exist('constraint','var') == 1
-    simu.numConstraints = length(constraint(1,:));
-    for ii = 1:simu.numConstraints
-        constraint(ii).constraintNum = ii;
-        constraint(ii).setOrientation();
-    end; clear ii
-end
-% PTOs: count & set orientation
-if exist('pto','var') == 1
-    simu.numPtos = length(pto(1,:));
-    for ii = 1:simu.numPtos
-        pto(ii).ptoNum = ii;
-        pto(ii).setOrientation();
-    end; clear ii
-end
-% Mooring Configuration: count
-if exist('mooring','var') == 1
-    simu.numMoorings = length(mooring(1,:));
-    for ii = 1:simu.numMoorings
-        mooring(ii).mooringNum = ii;
-        mooring(ii).setLoc;
-    end; clear ii
-end
-% Bodies: count, check inputs, read hdf5 file
-numHydroBodies = 0;
-for ii = 1:length(body(1,:))
-    body(ii).bodyNumber = ii;
-    if body(ii).nhBody==0
-        numHydroBodies = numHydroBodies + 1;
-    else
-        body(ii).massCalcMethod = 'user';
-    end
-end
-simu.numWecBodies = numHydroBodies; clear numHydroBodies
-for ii = 1:simu.numWecBodies
-    body(ii).checkinputs;
-    %Determine if hydro data needs to be reloaded from h5 file, or if hydroData
-    % was stored in memory from a previous run.
-    if exist('mcr','var') == 1 && simu.reloadH5Data == 0 && imcr > 1
-        body(ii).loadHydroData(hydroData(ii));
-    else
-        % check for correct h5 file
-        h5Info = dir(body(ii).h5File);
-        h5Info.bytes;
-        if h5Info.bytes < 1000
-            error(['This is not the correct *.h5 file. Please install git-lfs to access the correct *.h5 file, or run \hydroData\bemio.m to generate a new *.h5 file'])
-        end
-        clearvars h5Info
-        body(ii).readH5File;
-    end
-    body(ii).bodyTotal = simu.numWecBodies;
-    if simu.b2b==1
-        body(ii).lenJ = zeros(6*body(ii).bodyTotal,1);
-    else
-        body(ii).lenJ = zeros(6,1);
-    end
-end; clear ii
-% PTO-Sim: read input, count
-if exist('./ptoSimInputFile.m','file') == 2
-    ptoSimInputFile
-    ptosim.countblocks;
-end
 
-simu.yawNonLin==1 && simu.yawThresh==1
-
-
-simu.setupSim;
-
-
-% wave setup
-waves.waveSetup(body(1).hydroData.simulation_parameters.w, body(1).hydroData.simulation_parameters.water_depth, simu.rampTime, simu.dt, simu.maxIt, simu.g, simu.rho,  simu.endTime);
-% Check that waveDir and freq are within range of hydro data
-if  min(waves.waveDir) <  min(body(1).hydroData.simulation_parameters.wave_dir) || max(waves.waveDir) >  max(body(1).hydroData.simulation_parameters.wave_dir)
-    error('waves.waveDir outside of range of available hydro data')
-end
-if strcmp(waves.type,'etaImport')~=1 && strcmp(waves.type,'noWave')~=1 && strcmp(waves.type,'noWaveCIC')~=1
-    if  min(waves.w) <  min(body(1).hydroData.simulation_parameters.w) || max(waves.w) >  max(body(1).hydroData.simulation_parameters.w)
-        error('waves.w outside of range of available hydro data')
-    end
-end
-
-% Non-linear hydro
-if (simu.nlHydro >0) || (simu.paraview == 1)
-    for kk = 1:length(body(1,:))
-        body(kk).bodyGeo(body(kk).geometryFile)
-    end; clear kk
-end
-
-% hydroForcePre
-for kk = 1:simu.numWecBodies
-    body(kk).hydroForcePre(waves.w,waves.waveDir,simu.CIkt,simu.CTTime,waves.numFreq,simu.dt,...
-        simu.rho,simu.g,waves.type,waves.waveAmpTime,kk,simu.numWecBodies,simu.ssCalc,simu.nlHydro,simu.b2b,simu.yawNonLin);
-end; clear kk
     

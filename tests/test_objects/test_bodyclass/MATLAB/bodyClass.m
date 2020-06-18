@@ -391,7 +391,7 @@ classdef bodyClass<handle
         end
     end
     
-    methods (Access = 'protected') %modify object = T; output = F
+    methods (Access = 'public') %modify object = T; output = F
         function noExcitation(obj)
             % Set exciation force for no excitation case
             nDOF = obj.dof;
