@@ -173,7 +173,7 @@ class BodyClass:
         if np.array(f.get(name + '/hydro_coeffs/radiation_damping/impulse_response_fun/K')).all() != None:
             self.hydroData['hydro_coeffs']['radiation_damping']['impulse_response_fun']['K'] = np.array(f.get(name + '/hydro_coeffs/radiation_damping/impulse_response_fun/K'))
         if np.array(f.get(name +'/hydro_coeffs/radiation_damping/impulse_response_fun/t')).all() != None:
-            self.hydroData['hydro_coeffs']['radiation_damping']['impulse_response_fun']['t'] = np.array(f.get(name +'/hydro_coeffs/radiation_damping/impulse_response_fun/t'))
+            self.hydroData['hydro_coeffs']['radiation_damping']['impulse_response_fun']['t'] = np.transpose(np.array(f.get(name +'/hydro_coeffs/radiation_damping/impulse_response_fun/t')))
         if np.array(f.get(name + '/hydro_coeffs/radiation_damping/state_space/it')).all() != None:
             self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['it'] = np.array(f.get(name + '/hydro_coeffs/radiation_damping/state_space/it'))
         if np.array(f.get(name + '/hydro_coeffs/radiation_damping/state_space/A/all')).all() != None:
@@ -286,10 +286,10 @@ class BodyClass:
             self.hydroForce['gbm']['mass_ff_inv']=inv(self.hydroForce['gbm']['mass_ff'])
             
             # state-space formulation for solving the GBM
-            self.hydroForce['gbm']['state_space']['A'] = [np.zeros(gbmDOF,gbmDOF), np.eye(gbmDOF,gbmDOF)-inv(self.hydroForce['gbm']['mass_ff'])*self.hydroForce['gbm']['stiffness'],-inv(self.hydroForce['gbm']['mass_ff'])*self.hydroForce['gbm']['damping']]    # move to ... hydroForce sector with scaling .         # or create a new fun for all flex parameters
+            self.hydroForce['gbm']['state_space']['A'] = [np.zeros((gbmDOF,gbmDOF)), np.eye(gbmDOF,gbmDOF)-inv(self.hydroForce['gbm']['mass_ff'])*self.hydroForce['gbm']['stiffness'],-inv(self.hydroForce['gbm']['mass_ff'])*self.hydroForce['gbm']['damping']]    # move to ... hydroForce sector with scaling .         # or create a new fun for all flex parameters
             self.hydroForce['gbm']['state_space']['B'] = np.eye(2*gbmDOF,2*gbmDOF)
             self.hydroForce['gbm']['state_space']['C'] = np.eye(2*gbmDOF,2*gbmDOF)
-            self.hydroForce['gbm']['state_space']['D'] = np.zeros(2*gbmDOF,2*gbmDOF)
+            self.hydroForce['gbm']['state_space']['D'] = np.zeros((2*gbmDOF,2*gbmDOF))
             self.flexHydroBody = 1
             self.nhBody=0
 
@@ -462,13 +462,13 @@ class BodyClass:
     def regExcitation(self,w,waveDir,rho,g):
         # Regular wave excitation force
         # Used by hydroForcePre
-        nDOF = int(self.dof[0][0])
+        nDOF = int(self.dof[0])
         re = self.hydroData['hydro_coeffs']['excitation']['re']*rho*g
         im = self.hydroData['hydro_coeffs']['excitation']['im']*rho*g
         md = self.hydroData['hydro_coeffs']['mean_drift']*rho*g
-        self.hydroForce['fExt']['re'] = np.zeros(int(nDOF))
-        self.hydroForce['fExt']['im'] = np.zeros(int(nDOF))
-        self.hydroForce['fExt']['md'] = np.zeros(int(nDOF))
+        self.hydroForce['fExt']['re'] = np.zeros(nDOF)
+        self.hydroForce['fExt']['im'] = np.zeros(nDOF)
+        self.hydroForce['fExt']['md'] = np.zeros(nDOF)
         for ii in range(nDOF):
             if np.size(self.hydroData['simulation_parameters']['wave_dir']) > 1:
                 pass
@@ -575,7 +575,7 @@ class BodyClass:
             self.hydroForce['totDOF']  = np.zeros((nDOF,nDOF))
             for ii in range(nDOF):
                 for jj in range(nDOF):
-                    jjj = int(self.dof_start[0]-1+jj)
+                    jjj = int(self.dof_start[0])-1+jj
                     s1 = interpolate.CubicSpline(self.hydroData['simulation_parameters']['w'][0], np.squeeze(am[ii,jjj,:]))
                     self.hydroForce['fAddedMass'][ii,jj] = s1(w)
                     s2 = interpolate.CubicSpline(self.hydroData['simulation_parameters']['w'][0], np.squeeze(rd[ii,jjj,:]))
@@ -598,68 +598,60 @@ class BodyClass:
         if B2B == 1:
             self.hydroForce['fAddedMass'] = self.hydroData['hydro_coeffs']['added_mass']['inf_freq']*rho
         else:
-            self.hydroForce['fAddedMass'] = self.hydroData['hydro_coeffs']['added_mass']['inf_freq'][:,self.dof_start[0]:self.dof_end[0]]*rho
+            self.hydroForce['fAddedMass'] = self.hydroData['hydro_coeffs']['added_mass']['inf_freq'][:,int(self.dof_start[0])-1:int(self.dof_end[0])]*rho
         
-    #     # Radition IRF
-    #     self.hydroForce.fDamping=zeros(nDOF,LDOF)
-    #     irfk = self.hydroData.hydro_coeffs.radiation_damping.impulse_response_fun.K  .*rho
-    #     irft = self.hydroData.hydro_coeffs.radiation_damping.impulse_response_fun.t
-    #     #self.hydroForce.irkb=zeros(CIkt,6,lenJ)
-    #     if B2B == 1
-    #         for ii=1:nDOF
-    #             for jj=1:LDOF
-    #                 self.hydroForce.irkb(:,ii,jj) = interp1(irft,squeeze(irfk(ii,jj,:)),CTTime,'spline')
+        # Radition IRF
+        self.hydroForce['fDamping'] = np.zeros((nDOF,LDOF))
+        irfk = self.hydroData['hydro_coeffs']['radiation_damping']['impulse_response_fun']['K']*rho
+        irft = self.hydroData['hydro_coeffs']['radiation_damping']['impulse_response_fun']['t'][0]
+        self.hydroForce['irkb'] = np.zeros((len(CTTime),nDOF,LDOF))
+        if B2B == 1:
+            for ii in range(nDOF):
+                for jj in range(LDOF):
+                    s1 = interpolate.CubicSpline(irft, np.squeeze(irfk[ii,jj,:]))
+                    self.hydroForce['irkb'][:,ii,jj] = s1(CTTime)
+        else:
+            for ii in range(nDOF):
+                for jj in range(LDOF):
+                    jjj = int(self.dof_start[0])-1+jj
+                    s1 = interpolate.CubicSpline(irft, np.squeeze(irfk[ii,jjj,:]))
+                    self.hydroForce['irkb'][:,ii,jj] = s1(CTTime)
                 
-            
-    #     else
-    #         for ii=1:nDOF
-    #             for jj=1:LDOF
-    #                 jjj = self.dof_start-1+jj
-    #                 self.hydroForce.irkb(:,ii,jj) = interp1(irft,squeeze(irfk(ii,jjj,:)),CTTime,'spline')
-                
-            
-        
-    #     # State Space Formulation
-    #     if ssCalc == 1
-    #         if B2B == 1
-    #             for ii = 1:nDOF
-    #                 for jj = 1:LDOF
-    #                     arraySize = self.hydroData.hydro_coeffs.radiation_damping.state_space.it(ii,jj)
-    #                     if ii == 1 && jj == 1 # Begin construction of combined state, input, and output matrices
-    #                         Af(1:arraySize,1:arraySize) = self.hydroData.hydro_coeffs.radiation_damping.state_space.A.all(ii,jj,1:arraySize,1:arraySize)
-    #                         Bf(1:arraySize,jj)        = self.hydroData.hydro_coeffs.radiation_damping.state_space.B.all(ii,jj,1:arraySize,1)
-    #                         Cf(ii,1:arraySize)          = self.hydroData.hydro_coeffs.radiation_damping.state_space.C.all(ii,jj,1,1:arraySize)
-    #                     else
-    #                         Af(size(Af,1)+1:size(Af,1)+arraySize,size(Af,2)+1:size(Af,2)+arraySize)     = self.hydroData.hydro_coeffs.radiation_damping.state_space.A.all(ii,jj,1:arraySize,1:arraySize)
-    #                         Bf(size(Bf,1)+1:size(Bf,1)+arraySize,jj) = self.hydroData.hydro_coeffs.radiation_damping.state_space.B.all(ii,jj,1:arraySize,1)
-    #                         Cf(ii,size(Cf,2)+1:size(Cf,2)+arraySize)   = self.hydroData.hydro_coeffs.radiation_damping.state_space.C.all(ii,jj,1,1:arraySize)
-                        
-                    
-                
-    #             self.hydroForce.ssRadf.D = zeros(nDOF,LDOF)
-    #         else
-    #             for ii = 1:nDOF
-    #                 for jj = self.dof_start:self.dof_end
-    #                     jInd = jj-self.dof_start+1
-    #                     arraySize = self.hydroData.hydro_coeffs.radiation_damping.state_space.it(ii,jj)
-    #                     if ii == 1 && jInd == 1 # Begin construction of combined state, input, and output matrices
-    #                         Af(1:arraySize,1:arraySize) = self.hydroData.hydro_coeffs.radiation_damping.state_space.A.all(ii,jj,1:arraySize,1:arraySize)
-    #                         Bf(1:arraySize,jInd)        = self.hydroData.hydro_coeffs.radiation_damping.state_space.B.all(ii,jj,1:arraySize,1)
-    #                         Cf(ii,1:arraySize)          = self.hydroData.hydro_coeffs.radiation_damping.state_space.C.all(ii,jj,1,1:arraySize)
-    #                     else
-    #                         Af(size(Af,1)+1:size(Af,1)+arraySize,size(Af,2)+1:size(Af,2)+arraySize) = self.hydroData.hydro_coeffs.radiation_damping.state_space.A.all(ii,jj,1:arraySize,1:arraySize)
-    #                         Bf(size(Bf,1)+1:size(Bf,1)+arraySize,jInd) = self.hydroData.hydro_coeffs.radiation_damping.state_space.B.all(ii,jj,1:arraySize,1)
-    #                         Cf(ii,size(Cf,2)+1:size(Cf,2)+arraySize)   = self.hydroData.hydro_coeffs.radiation_damping.state_space.C.all(ii,jj,1,1:arraySize)
-                        
-                    
-                
-    #             self.hydroForce.ssRadf.D = zeros(nDOF,nDOF)
-            
-    #         self.hydroForce.ssRadf.A = Af
-    #         self.hydroForce.ssRadf.B = Bf
-    #         self.hydroForce.ssRadf.C = Cf .*rho
-        
-    
+        # State Space Formulation
+        if ssCalc == 1:
+            Af = np.zeros((nDOF,LDOF))
+            Bf = np.zeros((nDOF,LDOF))
+            Cf = np.zeros((nDOF,LDOF))
+            if B2B == 1:
+                for ii in range(nDOF):
+                    for jj in range(LDOF):
+                        arraySize = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['it'][ii,jj]
+                        if ii == 0 and jj == 0: # Begin construction of combined state, input, and output matrices
+                            Af[:arraySize,:arraySize] = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['A']['all'][ii,jj,:arraySize,:arraySize]
+                            Bf[:arraySize,jj]         = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['B']['all'][ii,jj,:arraySize,0]
+                            Cf[ii,:arraySize]         = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['C']['all'][ii,jj,0,:arraySize]
+                        else:
+                            Af[np.size(Af,0)+1:np.size(Af,0)+arraySize,np.size(Af,1)+1:np.size(Af,1)+arraySize] = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['A']['all'][ii,jj,:arraySize,:arraySize]
+                            Bf[np.size(Bf,0)+1:np.size(Bf,0)+arraySize,jj] = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['B']['all'][ii,jj,:arraySize,0]
+                            Cf[ii,np.size(Cf,1)+1:np.size(Cf,1)+arraySize] = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['C']['all'][ii,jj,0,:arraySize]
+                self.hydroForce['ssRadf']['D'] = np.zeros((nDOF,LDOF))
+            else:
+                for ii in range(nDOF):
+                    for jj in range(int(self.dof_start[0]),int(self.dof_end[0])):
+                        jInd = jj-int(self.dof_start[0])+1
+                        arraySize = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['it'][ii,jj]
+                        if ii == 0 and jInd == 0: # Begin construction of combined state, input, and output matrices
+                            Af[:arraySize,:arraySize] = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['A']['all'][ii,jj,:arraySize,:arraySize]
+                            Bf[:arraySize,jInd]       = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['B']['all'][ii,jj,:arraySize,0]
+                            Cf[ii,:arraySize]         = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['C']['all'][ii,jj,0,:arraySize]
+                        else:
+                            Af[np.size(Af,0)+1:np.size(Af,0)+arraySize,np.size(Af,1)+1:np.size(Af,1)+arraySize] = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['A']['all'][ii,jj,:arraySize,:arraySize]
+                            Bf[np.size(Bf,0)+1:np.size(Bf,0)+arraySize,jj] = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['B']['all'][ii,jj,:arraySize,0]
+                            Cf[ii,np.size(Cf,1)+1:np.size(Cf,1)+arraySize]  = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['C']['all'][ii,jj,0,:arraySize]
+                self.hydroForce['ssRadf']['D'] = np.zeros((nDOF,nDOF))
+            self.hydroForce['ssRadf']['A'] = Af
+            self.hydroForce['ssRadf']['B'] = Bf
+            self.hydroForce['ssRadf']['C'] = Cf*rho
     
     # def setMassMatrix(obj, rho, nlHydro)
     #     # Sets mass for the special cases of body at equilibrium or fixed

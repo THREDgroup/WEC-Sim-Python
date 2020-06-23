@@ -286,10 +286,10 @@ class BodyClass:
             self.hydroForce['gbm']['mass_ff_inv']=inv(self.hydroForce['gbm']['mass_ff'])
             
             # state-space formulation for solving the GBM
-            self.hydroForce['gbm']['state_space']['A'] = [np.zeros(gbmDOF,gbmDOF), np.eye(gbmDOF,gbmDOF)-inv(self.hydroForce['gbm']['mass_ff'])*self.hydroForce['gbm']['stiffness'],-inv(self.hydroForce['gbm']['mass_ff'])*self.hydroForce['gbm']['damping']]    # move to ... hydroForce sector with scaling .         # or create a new fun for all flex parameters
+            self.hydroForce['gbm']['state_space']['A'] = [np.zeros((gbmDOF,gbmDOF)), np.eye(gbmDOF,gbmDOF)-inv(self.hydroForce['gbm']['mass_ff'])*self.hydroForce['gbm']['stiffness'],-inv(self.hydroForce['gbm']['mass_ff'])*self.hydroForce['gbm']['damping']]    # move to ... hydroForce sector with scaling .         # or create a new fun for all flex parameters
             self.hydroForce['gbm']['state_space']['B'] = np.eye(2*gbmDOF,2*gbmDOF)
             self.hydroForce['gbm']['state_space']['C'] = np.eye(2*gbmDOF,2*gbmDOF)
-            self.hydroForce['gbm']['state_space']['D'] = np.zeros(2*gbmDOF,2*gbmDOF)
+            self.hydroForce['gbm']['state_space']['D'] = np.zeros((2*gbmDOF,2*gbmDOF))
             self.flexHydroBody = 1
             self.nhBody=0
 
@@ -598,7 +598,7 @@ class BodyClass:
         if B2B == 1:
             self.hydroForce['fAddedMass'] = self.hydroData['hydro_coeffs']['added_mass']['inf_freq']*rho
         else:
-            self.hydroForce['fAddedMass'] = self.hydroData['hydro_coeffs']['added_mass']['inf_freq'][:,int(self.dof_start[0]):int(self.dof_end[0]+1)]*rho
+            self.hydroForce['fAddedMass'] = self.hydroData['hydro_coeffs']['added_mass']['inf_freq'][:,int(self.dof_start[0])-1:int(self.dof_end[0])]*rho
         
         # Radition IRF
         self.hydroForce['fDamping'] = np.zeros((nDOF,LDOF))

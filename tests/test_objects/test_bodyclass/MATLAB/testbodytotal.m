@@ -36,10 +36,10 @@ kk = 1;
 % body(1).regExcitation(waves.w,waves.waveDir,simu.rho,simu.g)
 % body(1).constAddedMassAndDamping(waves.w,simu.CIkt,simu.rho,simu.b2b)
 
-body(kk).irfInfAddedMassAndDamping(simu.CIkt,simu.CTTime,simu.ssCalc,simu.rho,simu.b2b)
+%body(kk).irfInfAddedMassAndDamping(simu.CIkt,simu.CTTime,simu.ssCalc,simu.rho,simu.b2b)
 % 
-% body(kk).hydroForcePre(waves.w,waves.waveDir,simu.CIkt,simu.CTTime,waves.numFreq,simu.dt,...
-%     simu.rho,simu.g,waves.type,waves.waveAmpTime,kk,simu.numWecBodies,simu.ssCalc,simu.nlHydro,simu.b2b);
+body(kk).hydroForcePre(waves.w,waves.waveDir,simu.CIkt,simu.CTTime,waves.numFreq,simu.dt,...
+    simu.rho,simu.g,waves.type,waves.waveAmpTime,kk,simu.numWecBodies,simu.ssCalc,simu.nlHydro,simu.b2b);
 
 % for kk = 1:simu.numWecBodies
 %     body(kk).hydroForcePre(waves.w,waves.waveDir,simu.CIkt,simu.CTTime,waves.numFreq,simu.dt,...
