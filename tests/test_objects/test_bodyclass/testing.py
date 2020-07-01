@@ -32,7 +32,7 @@ numBod = [] #later change it to 2 to check
 ssCalc = 0
 nlHydro = 0
 B2B = 0
-body_1.bodyNumber = 1
+
 body_1.readH5file()
 body_1.hydroStiffness = np.zeros((6, 6))
 body_1.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}

@@ -269,9 +269,9 @@ class BodyClass:
         elif waveType == 'regularCIC':
             self.regExcitation(w,waveDir,rho,g)
             self.irfInfAddedMassAndDamping(CIkt,CTTime,ssCalc,rho,B2B)
-        # elif waveType == 'irregular' or waveType == 'spectrumImport':
-        #     self.irrExcitation(w,numFreq,waveDir,rho,g)
-        #     self.irfInfAddedMassAndDamping(CIkt,CTTime,ssCalc,rho,B2B)
+        elif waveType == 'irregular' or waveType == 'spectrumImport':
+            self.irrExcitation(w,numFreq,waveDir,rho,g)
+            self.irfInfAddedMassAndDamping(CIkt,CTTime,ssCalc,rho,B2B)
         # elif waveType == 'etaImport':
         #     self.userDefinedExcitation(waveAmpTime,dt,waveDir,rho,g)
         #     self.irfInfAddedMassAndDamping(CIkt,CTTime,ssCalc,rho,B2B)
@@ -500,29 +500,30 @@ class BodyClass:
         
     
     
-    # def irrExcitation(obj,wv,numFreq,waveDir,rho,g)
-    #     # Irregular wave excitation force
-    #     # Used by hydroForcePre
-    #     nDOF = self.dof
-    #     re = self.hydroData.hydro_coeffs.excitation.re(:,:,:) .*rho.*g
-    #     im = self.hydroData.hydro_coeffs.excitation.im(:,:,:) .*rho.*g
-    #     md = self.hydroData.hydro_coeffs.mean_drift(:,:,:)    .*rho.*g
-    #     self.hydroForce.fExt.re=zeros(length(waveDir),numFreq,nDOF)
-    #     self.hydroForce.fExt.im=zeros(length(waveDir),numFreq,nDOF)
-    #     self.hydroForce.fExt.md=zeros(length(waveDir),numFreq,nDOF)
-    #     for ii=1:nDOF
-    #         if length(self.hydroData.simulation_parameters.wave_dir) > 1
-    #             [X,Y] = meshgrid(self.hydroData.simulation_parameters.w, self.hydroData.simulation_parameters.wave_dir)
-    #             self.hydroForce.fExt.re(:,:,ii) = interp2(X, Y, squeeze(re(ii,:,:)), wv, waveDir)
-    #             self.hydroForce.fExt.im(:,:,ii) = interp2(X, Y, squeeze(im(ii,:,:)), wv, waveDir)
-    #             self.hydroForce.fExt.md(:,:,ii) = interp2(X, Y, squeeze(md(ii,:,:)), wv, waveDir)
-    #         elif self.hydroData.simulation_parameters.wave_dir == waveDir
-    #             self.hydroForce.fExt.re(:,:,ii) = interp1(self.hydroData.simulation_parameters.w,squeeze(re(ii,1,:)),wv,'spline')
-    #             self.hydroForce.fExt.im(:,:,ii) = interp1(self.hydroData.simulation_parameters.w,squeeze(im(ii,1,:)),wv,'spline')
-    #             self.hydroForce.fExt.md(:,:,ii) = interp1(self.hydroData.simulation_parameters.w,squeeze(md(ii,1,:)),wv,'spline')
-            
-        
-    
+    def irrExcitation(self,wv,numFreq,waveDir,rho,g):
+        # Irregular wave excitation force
+        # Used by hydroForcePre
+        nDOF = int(self.dof[0])
+        re = self.hydroData['hydro_coeffs']['excitation']['re']*rho*g
+        im = self.hydroData['hydro_coeffs']['excitation']['im']*rho*g
+        md = self.hydroData['hydro_coeffs']['mean_drift']*rho*g
+        self.hydroForce['fExt']['re'] = np.zeros((np.size(waveDir),numFreq,nDOF))
+        self.hydroForce['fExt']['im'] = np.zeros((np.size(waveDir),numFreq,nDOF))
+        self.hydroForce['fExt']['md'] = np.zeros((np.size(waveDir),numFreq,nDOF))
+        for ii in range(nDOF):
+            if np.size(self.hydroData['simulation_parameters']['wave_dir']) > 1:
+                pass
+                # [X,Y] = np.meshgrid(self.hydroData['simulation_parameters']['w'], self.hydroData['simulation_parameters']['wave_dir'])
+                # self.hydroForce['fExt']['re'][:,:,ii] = np.interp2(X, Y, np.squeeze(re[ii][0]), wv, waveDir)
+                # self.hydroForce['fExt']['im'][:,:,ii] = interp2(X, Y, squeeze(im(ii,:,:)), wv, waveDir)
+                # self.hydroForce['fExt']['md'][:,:,ii] = interp2(X, Y, squeeze(md(ii,:,:)), wv, waveDir)
+            elif self.hydroData['simulation_parameters']['wave_dir'] == waveDir:
+                s1 = interpolate.CubicSpline(self.hydroData['simulation_parameters']['w'][0], np.squeeze(re[ii][0]))
+                s2 = interpolate.CubicSpline(self.hydroData['simulation_parameters']['w'][0], np.squeeze(im[ii][0]))
+                s3 = interpolate.CubicSpline(self.hydroData['simulation_parameters']['w'][0], np.squeeze(md[ii][0]))
+                self.hydroForce['fExt']['re'][:,:,ii] = s1(wv)
+                self.hydroForce['fExt']['im'][:,:,ii] = s2(wv)
+                self.hydroForce['fExt']['md'][:,:,ii] = s3(wv)
     
     # def userDefinedExcitation(obj,waveAmpTime,dt,waveDir,rho,g)
     #     # Calculated User-Defined wave excitation force with non-causal convolution
