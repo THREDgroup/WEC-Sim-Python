@@ -133,10 +133,11 @@ class BodyClass:
         self.dispVol = np.array(f.get(name + '/properties/disp_vol'))
         self.name = np.string_(np.array(f.get(name + '/properties/name'))).decode("utf-8")
         self.hydroData['simulation_parameters']['scaled'] = np.array(f.get('/simulation_parameters/scaled'))
-        self.hydroData['simulation_parameters']['wave_dir'] = np.array(f.get('/simulation_parameters/wave_dir'))
-        self.hydroData['simulation_parameters']['water_depth'] = np.string_(np.array(f.get('/simulation_parameters/water_depth'))).decode("utf-8")
-        if self.hydroData['simulation_parameters']['water_depth'] != "infinite":
+        self.hydroData['simulation_parameters']['wave_dir'] = np.transpose(np.array(f.get('/simulation_parameters/wave_dir')))
+        if np.array(f.get('/simulation_parameters/water_depth')).dtype == float:
             self.hydroData['simulation_parameters']['water_depth'] = np.array(f.get('/simulation_parameters/water_depth'))
+        else:            
+            self.hydroData['simulation_parameters']['water_depth'] = np.string_(np.array(f.get('/simulation_parameters/water_depth'))).decode("utf-8")
         self.hydroData['simulation_parameters']['w'] = np.transpose(np.array(f.get('/simulation_parameters/w')))
         self.hydroData['simulation_parameters']['T'] = np.transpose(np.array(f.get('/simulation_parameters/T')))
         self.hydroData['properties']['name'] = np.string_(np.array(f.get(name + '/properties/name'))).decode("utf-8")
@@ -471,11 +472,14 @@ class BodyClass:
         self.hydroForce['fExt']['md'] = np.zeros(nDOF)
         for ii in range(nDOF):
             if np.size(self.hydroData['simulation_parameters']['wave_dir']) > 1:
-                pass
-                # [X,Y] = np.meshgrid(self.hydroData['simulation_parameters']['w'], self.hydroData['simulation_parameters']['wave_dir'])
-                # self.hydroForce['fExt']['re'][ii] = interp2(X, Y, np.squeeze(re[ii]), w, waveDir)
-                # self.hydroForce['fExt']['im'][ii] = interp2(X, Y, np.squeeze(im[ii]), w, waveDir)
-                # self.hydroForce['fExt']['md'][ii] = interp2(X, Y, np.squeeze(md[ii]), w, waveDir)
+                x = self.hydroData['simulation_parameters']['w'][0]
+                y = self.hydroData['simulation_parameters']['wave_dir'][0]
+                s1 = interpolate.interp2d(x,y, np.squeeze(re[ii]))
+                self.hydroForce['fExt']['re'][ii] = s1(w[0],waveDir)
+                s2 = interpolate.interp2d(x,y, np.squeeze(im[ii]))
+                self.hydroForce['fExt']['im'][ii] = s2(w[0],waveDir)
+                s3 = interpolate.interp2d(x,y, np.squeeze(md[ii]))
+                self.hydroForce['fExt']['md'][ii] = s3(w[0],waveDir)
             elif self.hydroData['simulation_parameters']['wave_dir'] == waveDir:
                 s1 = interpolate.CubicSpline(self.hydroData['simulation_parameters']['w'][0], np.squeeze(re[ii][0]))
                 s2 = interpolate.CubicSpline(self.hydroData['simulation_parameters']['w'][0], np.squeeze(im[ii][0]))
@@ -512,15 +516,19 @@ class BodyClass:
         self.hydroForce['fExt']['md'] = np.zeros((np.size(waveDir),numFreq,nDOF))
         for ii in range(nDOF):
             if np.size(self.hydroData['simulation_parameters']['wave_dir']) > 1:
-                pass
-                # [X,Y] = np.meshgrid(self.hydroData['simulation_parameters']['w'], self.hydroData['simulation_parameters']['wave_dir'])
-                # self.hydroForce['fExt']['re'][:,:,ii] = np.interp2(X, Y, np.squeeze(re[ii][0]), wv, waveDir)
-                # self.hydroForce['fExt']['im'][:,:,ii] = interp2(X, Y, squeeze(im(ii,:,:)), wv, waveDir)
-                # self.hydroForce['fExt']['md'][:,:,ii] = interp2(X, Y, squeeze(md(ii,:,:)), wv, waveDir)
+                x = self.hydroData['simulation_parameters']['w'][0]
+                y = self.hydroData['simulation_parameters']['wave_dir'][0]
+                s1 = interpolate.interp2d(x,y, np.squeeze(re[ii]))
+                self.hydroForce['fExt']['re'][:,:,ii] = s1(wv[0],waveDir)
+                s2 = interpolate.interp2d(x,y, np.squeeze(im[ii]))
+                self.hydroForce['fExt']['im'][:,:,ii] = s2(wv[0],waveDir)
+                s3 = interpolate.interp2d(x,y, np.squeeze(md[ii]))
+                self.hydroForce['fExt']['md'][:,:,ii] = s3(wv[0],waveDir)
             elif self.hydroData['simulation_parameters']['wave_dir'] == waveDir:
-                s1 = interpolate.CubicSpline(self.hydroData['simulation_parameters']['w'][0], np.squeeze(re[ii][0]))
-                s2 = interpolate.CubicSpline(self.hydroData['simulation_parameters']['w'][0], np.squeeze(im[ii][0]))
-                s3 = interpolate.CubicSpline(self.hydroData['simulation_parameters']['w'][0], np.squeeze(md[ii][0]))
+                x = self.hydroData['simulation_parameters']['w'][0]
+                s1 = interpolate.CubicSpline(x, np.squeeze(re[ii][0]))
+                s2 = interpolate.CubicSpline(x, np.squeeze(im[ii][0]))
+                s3 = interpolate.CubicSpline(x, np.squeeze(md[ii][0]))
                 self.hydroForce['fExt']['re'][:,:,ii] = s1(wv)
                 self.hydroForce['fExt']['im'][:,:,ii] = s2(wv)
                 self.hydroForce['fExt']['md'][:,:,ii] = s3(wv)

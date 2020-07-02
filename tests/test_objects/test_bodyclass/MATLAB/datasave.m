@@ -1,0 +1,21 @@
+md = body(1).hydroForce.fExt.md
+irkb = body(1).hydroForce.irkb
+im = body(1).hydroForce.fExt.im
+re = body(1).hydroForce.fExt.re
+linearHydroRestCoef = body(1).hydroForce.linearHydroRestCoef 
+w = waves.w
+waveAmpTime = waves.waveAmpTime
+fAddedMass = body(1).hydroForce.fAddedMass
+userDefinedFe = body(1).hydroForce.userDefinedFe
+CTTime = simu.CTTime
+
+save data/irkb.mat irkb
+save data/md.mat md
+save data/im.mat im
+save data/re.mat re
+save data/linearHydroRestCoef.mat linearHydroRestCoef 
+save data/w.mat w
+save data/waveAmpTime.mat waveAmpTime
+save data/fAddedMass.mat fAddedMass
+save data/userDefinedFe.mat userDefinedFe
+save data/CTTime.mat CTTime
