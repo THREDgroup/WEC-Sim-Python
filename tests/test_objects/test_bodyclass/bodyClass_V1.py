@@ -453,11 +453,11 @@ class BodyClass:
     #         error('Could not locate and open geometry file #s',self.geometryFile)
         
 
-    # def noExcitation(self):
-    #     # Set exciation force for no excitation case
-    #     nDOF = self.dof
-    #     self.hydroForce['fExt']['re']=np.zeros(1,nDOF)
-    #     self.hydroForce.fExt.im=zeros(1,nDOF)
+    def noExcitation(self):
+        # Set exciation force for no excitation case
+        nDOF = int(self.dof[0])
+        self.hydroForce['fExt']['re'] = np.zeros(nDOF)
+        self.hydroForce['fExt']['im'] = np.zeros(nDOF)
     
     
     def regExcitation(self,w,waveDir,rho,g):
@@ -481,9 +481,10 @@ class BodyClass:
                 s3 = interpolate.interp2d(x,y, np.squeeze(md[ii]))
                 self.hydroForce['fExt']['md'][ii] = s3(w[0],waveDir)
             elif self.hydroData['simulation_parameters']['wave_dir'] == waveDir:
-                s1 = interpolate.CubicSpline(self.hydroData['simulation_parameters']['w'][0], np.squeeze(re[ii][0]))
-                s2 = interpolate.CubicSpline(self.hydroData['simulation_parameters']['w'][0], np.squeeze(im[ii][0]))
-                s3 = interpolate.CubicSpline(self.hydroData['simulation_parameters']['w'][0], np.squeeze(md[ii][0]))
+                x = self.hydroData['simulation_parameters']['w'][0]
+                s1 = interpolate.CubicSpline(x, np.squeeze(re[ii][0]))
+                s2 = interpolate.CubicSpline(x, np.squeeze(im[ii][0]))
+                s3 = interpolate.CubicSpline(x, np.squeeze(md[ii][0]))
                 self.hydroForce['fExt']['re'][ii] = s1(w)
                 self.hydroForce['fExt']['im'][ii] = s2(w)
                 self.hydroForce['fExt']['md'][ii] = s3(w)
@@ -500,10 +501,6 @@ class BodyClass:
                 # s = interpolate.make_interp_spline(x, y, k=3, bc_type=(l, r))
                 # a[ii] = s(w)
 
-            
-        
-    
-    
     def irrExcitation(self,wv,numFreq,waveDir,rho,g):
         # Irregular wave excitation force
         # Used by hydroForcePre
@@ -533,29 +530,29 @@ class BodyClass:
                 self.hydroForce['fExt']['im'][:,:,ii] = s2(wv)
                 self.hydroForce['fExt']['md'][:,:,ii] = s3(wv)
     
-    # def userDefinedExcitation(obj,waveAmpTime,dt,waveDir,rho,g)
-    #     # Calculated User-Defined wave excitation force with non-causal convolution
-    #     # Used by hydroForcePre
-    #     nDOF = self.dof
-    #     kf = self.hydroData.hydro_coeffs.excitation.impulse_response_fun.f .*rho .*g
-    #     kt = self.hydroData.hydro_coeffs.excitation.impulse_response_fun.t
-    #     t =  min(kt):dt:max(kt)
-    #     for ii = 1:nDOF
-    #         if length(self.hydroData.simulation_parameters.wave_dir) > 1
-    #             [X,Y] = meshgrid(kt, self.hydroData.simulation_parameters.wave_dir)
-    #             kernel = squeeze(kf(ii,:,:))
-    #             self.userDefinedExcIRF = interp2(X, Y, kernel, t, waveDir)
-    #         elif self.hydroData.simulation_parameters.wave_dir == waveDir
-    #             kernel = squeeze(kf(ii,1,:))
-    #             self.userDefinedExcIRF = interp1(kt,kernel,min(kt):dt:max(kt))
-    #         else
-    #             error('Default wave direction different from hydro database value. Wave direction (waves.waveDir) should be specified on input file.')
-            
-    #         self.hydroForce.userDefinedFe(:,ii) = conv(waveAmpTime(:,2),self.userDefinedExcIRF,'same')*dt
+    def userDefinedExcitation(self,waveAmpTime,dt,waveDir,rho,g):
+        # Calculated User-Defined wave excitation force with non-causal convolution
+        # Used by hydroForcePre
+        nDOF = int(self.dof[0])
+        kf = self.hydroData['hydro_coeffs']['excitation']['impulse_response_fun']['f']*rho*g
+        kt = self.hydroData['hydro_coeffs']['excitation']['impulse_response_fun']['t'][0]
+        t =  np.arange(np.min(kt),np.max(kt)+dt,dt)
+        for ii in range(nDOF):
+            if np.size(self.hydroData['simulation_parameters']['wave_dir']) > 1:
+                y = self.hydroData['simulation_parameters']['wave_dir'][0] 
+                s1 = interpolate.interp2d(kt,y, np.squeeze(kf[ii]))
+                self.userDefinedExcIRF = s1(t,waveDir)
+            elif self.hydroData['simulation_parameters']['wave_dir'] == waveDir:
+                s1 = interpolate.CubicSpline(kt, np.squeeze(kf[ii][0]))
+                self.userDefinedExcIRF = s1(t)
+            else:
+                warnings.warn("Default wave direction different from hydro database value. Wave direction (waves.waveDir) should be specified on input file.",DeprecationWarning)
+                
+            self.hydroForce['userDefinedFe'][:,ii] = np.convolve(waveAmpTime[1],self.userDefinedExcIRF,'valid')*dt
         
-    #     self.hydroForce.fExt.re=zeros(1,nDOF)
-    #     self.hydroForce.fExt.im=zeros(1,nDOF)
-    #     self.hydroForce.fExt.md=zeros(1,nDOF)
+        self.hydroForce['fExt']['re'] = np.zeros(nDOF)
+        self.hydroForce['fExt']['im'] = np.zeros(nDOF)
+        self.hydroForce['fExt']['md'] = np.zeros(nDOF)
     
     
     def constAddedMassAndDamping(self,w,CIkt,rho,B2B):
