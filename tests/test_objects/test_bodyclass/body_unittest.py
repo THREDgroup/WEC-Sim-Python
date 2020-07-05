@@ -33,10 +33,20 @@ class TestBody(unittest.TestCase):
     def setUp(self):
         print("setUp")
         self.body_1 = BodyClass('rm3.h5') #regularCIC
-        self.body_2 = BodyClass('rm3.h5') #irregular I am not sure if i need to 
-                                          #define irregular wave propety when creating h5
-                                          #need to check if this h5 is valid
-        self.body_3 = BodyClass('oswec.h5') #irregular with wave dir = [30,60]
+        self.body_2 = BodyClass('rm3.h5') #irregular
+        self.body_3 = BodyClass('oswec.h5') #irregular wave dir = [0,30,90]
+        self.body_4_1 = BodyClass('rm3.h5') #regular B2B_Case1:b2b = 0
+        self.body_4_2 = BodyClass('rm3.h5') #regular B2B_Case1:b2b = 0
+        self.body_5_1 = BodyClass('rm3.h5') #regular B2B_Case2:b2b = 1
+        self.body_5_2 = BodyClass('rm3.h5') #regular B2B_Case2:b2b = 1
+        self.body_6_1 = BodyClass('rm3.h5') #regularCIC B2B_Case3:b2b = 0
+        self.body_6_2 = BodyClass('rm3.h5') #regularCIC B2B_Case3:b2b = 0
+        self.body_7_1 = BodyClass('rm3.h5') #regularCIC B2B_Case4:b2b = 1
+        self.body_7_2 = BodyClass('rm3.h5') #regularCIC B2B_Case4:b2b = 1
+        self.body_8_1 = BodyClass('rm3.h5') #regularCIC B2B_Case5:b2b = 0,ssCalc = 1
+        self.body_8_2 = BodyClass('rm3.h5') #regularCIC B2B_Case5:b2b = 0,ssCalc = 1
+        self.body_9_1 = BodyClass('rm3.h5') #regularcIC B2B_Case6:b2b = 1,ssCalc = 1
+        self.body_9_2 = BodyClass('rm3.h5') #regularcIC B2B_Case6:b2b = 1,ssCalc = 1
         
     def tearDown(self):
         print("tearDown\n")
@@ -165,6 +175,464 @@ class TestBody(unittest.TestCase):
         result9 = readData("./testData/body_3_test/irkb.mat")
         self.assertIsNone(np.testing.assert_allclose(self.body_3.hydroForce['irkb'], result9))
         
+        w = np.conj(np.transpose(readData("./testData/body_4_test/w.mat"))) 
+        waveDir = [0]
+        CIkt = 601
+        CTTime = readData("./testData/body_4_test/CTTime.mat")[0]
+        dt = 0.1
+        rho = 1000
+        g = 9.81
+        waveType = 'regular'
+        waveAmpTime = np.conj(np.transpose(readData("./testData/body_4_test/waveAmpTime.mat"))) 
+        iBod = 1 #body number
+        numBod = [] #later change it to 2 to check
+        ssCalc = 0
+        nlHydro = 0
+        B2B = 0
+        numFreq = []
+        self.body_4_1.bodyNumber = 1
+        self.body_4_1.bodyTotal = [2]
+        self.body_4_1.readH5file()
+        self.body_4_1.hydroStiffness = np.zeros((6, 6))
+        self.body_4_1.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
+        self.body_4_1.linearDamping = np.zeros((6, 6))
+        self.body_4_1.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
+        result1 = readData("./testData/body_4_test/body1_linearHydroRestCoef.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_1.hydroForce['linearHydroRestCoef'], result1))
+        result2 = readData("./testData/body_4_test/body1_visDrag.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_1.hydroForce['visDrag'], result2))
+        result3 = readData("./testData/body_4_test/body1_linearDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_1.hydroForce['linearDamping'], result3))
+        result4 = readData("./testData/body_4_test/body1_userDefinedFe.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_1.hydroForce['userDefinedFe'], result4)) 
+        result5 = readData("./testData/body_4_test/body1_re.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_1.hydroForce['fExt']['re'], result5))
+        result6 = readData("./testData/body_4_test/body1_im.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_1.hydroForce['fExt']['im'], result6))
+        result7 = readData("./testData/body_4_test/body1_md.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_1.hydroForce['fExt']['md'], result7))
+        result8 = readData("./testData/body_4_test/body1_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_1.hydroForce['fAddedMass'], result8))
+        result9 = readData("./testData/body_4_test/body1_fDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_1.hydroForce['fDamping'], result9))
+        result10 = readData("./testData/body_4_test/body1_totDOF.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_1.hydroForce['totDOF'], result10))
+        iBod = 2 #body number
+        self.body_4_2.bodyNumber = 2
+        self.body_4_2.bodyTotal = [2]
+        self.body_4_2.readH5file()
+        self.body_4_2.hydroStiffness = np.zeros((6, 6))
+        self.body_4_2.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
+        self.body_4_2.linearDamping = np.zeros((6, 6))
+        self.body_4_2.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
+        result1 = readData("./testData/body_4_test/body2_linearHydroRestCoef.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_2.hydroForce['linearHydroRestCoef'], result1))
+        result2 = readData("./testData/body_4_test/body2_visDrag.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_2.hydroForce['visDrag'], result2))
+        result3 = readData("./testData/body_4_test/body2_linearDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_2.hydroForce['linearDamping'], result3))
+        result4 = readData("./testData/body_4_test/body2_userDefinedFe.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_2.hydroForce['userDefinedFe'], result4)) 
+        result5 = readData("./testData/body_4_test/body2_re.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_2.hydroForce['fExt']['re'], result5))
+        result6 = readData("./testData/body_4_test/body2_im.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_2.hydroForce['fExt']['im'], result6))
+        result7 = readData("./testData/body_4_test/body2_md.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_2.hydroForce['fExt']['md'], result7))
+        result8 = readData("./testData/body_4_test/body2_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_2.hydroForce['fAddedMass'], result8))
+        result9 = readData("./testData/body_4_test/body2_fDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_2.hydroForce['fDamping'], result9))
+        result10 = readData("./testData/body_4_test/body2_totDOF.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_2.hydroForce['totDOF'], result10))
+        
+        w = np.conj(np.transpose(readData("./testData/body_5_test/w.mat"))) 
+        waveDir = [0]
+        CIkt = 601
+        CTTime = readData("./testData/body_5_test/CTTime.mat")[0]
+        dt = 0.1
+        rho = 1000
+        g = 9.81
+        waveType = 'regular'
+        waveAmpTime = np.conj(np.transpose(readData("./testData/body_5_test/waveAmpTime.mat"))) 
+        iBod = 1 #body number
+        numBod = [] #later change it to 2 to check
+        ssCalc = 0
+        nlHydro = 0
+        B2B = 1
+        numFreq = []
+        self.body_5_1.bodyNumber = 1
+        self.body_5_1.bodyTotal = [2]
+        self.body_5_1.readH5file()
+        self.body_5_1.hydroStiffness = np.zeros((6, 6))
+        self.body_5_1.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
+        self.body_5_1.linearDamping = np.zeros((6, 6))
+        self.body_5_1.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
+        result1 = readData("./testData/body_5_test/body1_linearHydroRestCoef.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_1.hydroForce['linearHydroRestCoef'], result1))
+        result2 = readData("./testData/body_5_test/body1_visDrag.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_1.hydroForce['visDrag'], result2))
+        result3 = readData("./testData/body_5_test/body1_linearDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_1.hydroForce['linearDamping'], result3))
+        result4 = readData("./testData/body_5_test/body1_userDefinedFe.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_1.hydroForce['userDefinedFe'], result4)) 
+        result5 = readData("./testData/body_5_test/body1_re.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_1.hydroForce['fExt']['re'], result5))
+        result6 = readData("./testData/body_5_test/body1_im.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_1.hydroForce['fExt']['im'], result6))
+        result7 = readData("./testData/body_5_test/body1_md.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_1.hydroForce['fExt']['md'], result7))
+        result8 = readData("./testData/body_5_test/body1_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_1.hydroForce['fAddedMass'], result8))
+        result9 = readData("./testData/body_5_test/body1_fDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_1.hydroForce['fDamping'], result9))
+        result10 = readData("./testData/body_5_test/body1_totDOF.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_1.hydroForce['totDOF'], result10))
+        iBod = 2 #body number
+        self.body_5_2.bodyNumber = 2
+        self.body_5_2.bodyTotal = [2]
+        self.body_5_2.readH5file()
+        self.body_5_2.hydroStiffness = np.zeros((6, 6))
+        self.body_5_2.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
+        self.body_5_2.linearDamping = np.zeros((6, 6))
+        self.body_5_2.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
+        result1 = readData("./testData/body_5_test/body2_linearHydroRestCoef.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_2.hydroForce['linearHydroRestCoef'], result1))
+        result2 = readData("./testData/body_5_test/body2_visDrag.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_2.hydroForce['visDrag'], result2))
+        result3 = readData("./testData/body_5_test/body2_linearDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_2.hydroForce['linearDamping'], result3))
+        result4 = readData("./testData/body_5_test/body2_userDefinedFe.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_2.hydroForce['userDefinedFe'], result4)) 
+        result5 = readData("./testData/body_5_test/body2_re.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_2.hydroForce['fExt']['re'], result5))
+        result6 = readData("./testData/body_5_test/body2_im.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_2.hydroForce['fExt']['im'], result6))
+        result7 = readData("./testData/body_5_test/body2_md.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_2.hydroForce['fExt']['md'], result7))
+        result8 = readData("./testData/body_5_test/body2_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_2.hydroForce['fAddedMass'], result8))
+        result9 = readData("./testData/body_5_test/body2_fDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_2.hydroForce['fDamping'], result9))
+        result10 = readData("./testData/body_5_test/body2_totDOF.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_2.hydroForce['totDOF'], result10))
+        
+        w = np.conj(np.transpose(readData("./testData/body_6_test/w.mat"))) 
+        waveDir = [0]
+        CIkt = 601
+        CTTime = readData("./testData/body_6_test/CTTime.mat")[0]
+        dt = 0.1
+        rho = 1000
+        g = 9.81
+        waveType = 'regularCIC'
+        waveAmpTime = np.conj(np.transpose(readData("./testData/body_6_test/waveAmpTime.mat"))) 
+        iBod = 1 #body number
+        numBod = [] #later change it to 2 to check
+        ssCalc = 0
+        nlHydro = 0
+        B2B = 0
+        numFreq = []
+        self.body_6_1.bodyNumber = 1
+        self.body_6_1.bodyTotal = [2]
+        self.body_6_1.readH5file()
+        self.body_6_1.hydroStiffness = np.zeros((6, 6))
+        self.body_6_1.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
+        self.body_6_1.linearDamping = np.zeros((6, 6))
+        self.body_6_1.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
+        result1 = readData("./testData/body_6_test/body1_linearHydroRestCoef.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_6_1.hydroForce['linearHydroRestCoef'], result1))
+        result2 = readData("./testData/body_6_test/body1_visDrag.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_6_1.hydroForce['visDrag'], result2))
+        result3 = readData("./testData/body_6_test/body1_linearDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_6_1.hydroForce['linearDamping'], result3))
+        result4 = readData("./testData/body_6_test/body1_userDefinedFe.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_6_1.hydroForce['userDefinedFe'], result4)) 
+        result5 = readData("./testData/body_6_test/body1_re.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_6_1.hydroForce['fExt']['re'], result5))
+        result6 = readData("./testData/body_6_test/body1_im.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_6_1.hydroForce['fExt']['im'], result6))
+        result7 = readData("./testData/body_6_test/body1_md.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_6_1.hydroForce['fExt']['md'], result7))
+        result8 = readData("./testData/body_6_test/body1_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_6_1.hydroForce['fAddedMass'], result8))
+        result9 = readData("./testData/body_6_test/body1_fDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_6_1.hydroForce['fDamping'], result9))
+        result10 = readData("./testData/body_6_test/body1_irkb.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_6_1.hydroForce['irkb'], result10))
+        iBod = 2 #body number
+        self.body_6_2.bodyNumber = 2
+        self.body_6_2.bodyTotal = [2]
+        self.body_6_2.readH5file()
+        self.body_6_2.hydroStiffness = np.zeros((6, 6))
+        self.body_6_2.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
+        self.body_6_2.linearDamping = np.zeros((6, 6))
+        self.body_6_2.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
+        result1 = readData("./testData/body_6_test/body2_linearHydroRestCoef.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_6_2.hydroForce['linearHydroRestCoef'], result1))
+        result2 = readData("./testData/body_6_test/body2_visDrag.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_6_2.hydroForce['visDrag'], result2))
+        result3 = readData("./testData/body_6_test/body2_linearDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_6_2.hydroForce['linearDamping'], result3))
+        result4 = readData("./testData/body_6_test/body2_userDefinedFe.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_6_2.hydroForce['userDefinedFe'], result4)) 
+        result5 = readData("./testData/body_6_test/body2_re.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_6_2.hydroForce['fExt']['re'], result5))
+        result6 = readData("./testData/body_6_test/body2_im.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_6_2.hydroForce['fExt']['im'], result6))
+        result7 = readData("./testData/body_6_test/body2_md.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_6_2.hydroForce['fExt']['md'], result7))
+        result8 = readData("./testData/body_6_test/body2_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_6_2.hydroForce['fAddedMass'], result8))
+        result9 = readData("./testData/body_6_test/body2_fDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_6_2.hydroForce['fDamping'], result9))
+        result10 = readData("./testData/body_6_test/body2_irkb.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_6_2.hydroForce['irkb'], result10))
+        
+        w = np.conj(np.transpose(readData("./testData/body_7_test/w.mat"))) 
+        waveDir = [0]
+        CIkt = 601
+        CTTime = readData("./testData/body_7_test/CTTime.mat")[0]
+        dt = 0.1
+        rho = 1000
+        g = 9.81
+        waveType = 'regularCIC'
+        waveAmpTime = np.conj(np.transpose(readData("./testData/body_7_test/waveAmpTime.mat"))) 
+        iBod = 1 #body number
+        numBod = [] #later change it to 2 to check
+        ssCalc = 0
+        nlHydro = 0
+        B2B = 1
+        numFreq = []
+        self.body_7_1.bodyNumber = 1
+        self.body_7_1.bodyTotal = [2]
+        self.body_7_1.readH5file()
+        self.body_7_1.hydroStiffness = np.zeros((6, 6))
+        self.body_7_1.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
+        self.body_7_1.linearDamping = np.zeros((6, 6))
+        self.body_7_1.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
+        result1 = readData("./testData/body_7_test/body1_linearHydroRestCoef.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_1.hydroForce['linearHydroRestCoef'], result1))
+        result2 = readData("./testData/body_7_test/body1_visDrag.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_1.hydroForce['visDrag'], result2))
+        result3 = readData("./testData/body_7_test/body1_linearDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_1.hydroForce['linearDamping'], result3))
+        result4 = readData("./testData/body_7_test/body1_userDefinedFe.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_1.hydroForce['userDefinedFe'], result4)) 
+        result5 = readData("./testData/body_7_test/body1_re.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_1.hydroForce['fExt']['re'], result5))
+        result6 = readData("./testData/body_7_test/body1_im.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_1.hydroForce['fExt']['im'], result6))
+        result7 = readData("./testData/body_7_test/body1_md.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_1.hydroForce['fExt']['md'], result7))
+        result8 = readData("./testData/body_7_test/body1_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_1.hydroForce['fAddedMass'], result8))
+        result9 = readData("./testData/body_7_test/body1_fDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_1.hydroForce['fDamping'], result9))
+        result10 = readData("./testData/body_7_test/body1_irkb.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_1.hydroForce['irkb'], result10))
+        iBod = 2 #body number
+        self.body_7_2.bodyNumber = 2
+        self.body_7_2.bodyTotal = [2]
+        self.body_7_2.readH5file()
+        self.body_7_2.hydroStiffness = np.zeros((6, 6))
+        self.body_7_2.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
+        self.body_7_2.linearDamping = np.zeros((6, 6))
+        self.body_7_2.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
+        result1 = readData("./testData/body_7_test/body2_linearHydroRestCoef.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_2.hydroForce['linearHydroRestCoef'], result1))
+        result2 = readData("./testData/body_7_test/body2_visDrag.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_2.hydroForce['visDrag'], result2))
+        result3 = readData("./testData/body_7_test/body2_linearDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_2.hydroForce['linearDamping'], result3))
+        result4 = readData("./testData/body_7_test/body2_userDefinedFe.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_2.hydroForce['userDefinedFe'], result4)) 
+        result5 = readData("./testData/body_7_test/body2_re.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_2.hydroForce['fExt']['re'], result5))
+        result6 = readData("./testData/body_7_test/body2_im.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_2.hydroForce['fExt']['im'], result6))
+        result7 = readData("./testData/body_7_test/body2_md.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_2.hydroForce['fExt']['md'], result7))
+        result8 = readData("./testData/body_7_test/body2_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_2.hydroForce['fAddedMass'], result8))
+        result9 = readData("./testData/body_7_test/body2_fDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_2.hydroForce['fDamping'], result9))
+        result10 = readData("./testData/body_7_test/body2_irkb.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_2.hydroForce['irkb'], result10))
+        
+        w = np.conj(np.transpose(readData("./testData/body_8_test/w.mat"))) 
+        waveDir = [0]
+        CIkt = 601
+        CTTime = readData("./testData/body_8_test/CTTime.mat")[0]
+        dt = 0.1
+        rho = 1000
+        g = 9.81
+        waveType = 'regularCIC'
+        waveAmpTime = np.conj(np.transpose(readData("./testData/body_8_test/waveAmpTime.mat"))) 
+        iBod = 1 #body number
+        numBod = [] #later change it to 2 to check
+        ssCalc = 1
+        nlHydro = 0
+        B2B = 0
+        numFreq = []
+        self.body_8_1.bodyNumber = 1
+        self.body_8_1.bodyTotal = [2]
+        self.body_8_1.readH5file()
+        self.body_8_1.hydroStiffness = np.zeros((6, 6))
+        self.body_8_1.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
+        self.body_8_1.linearDamping = np.zeros((6, 6))
+        self.body_8_1.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
+        result1 = readData("./testData/body_8_test/body1_linearHydroRestCoef.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_1.hydroForce['linearHydroRestCoef'], result1))
+        result2 = readData("./testData/body_8_test/body1_visDrag.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_1.hydroForce['visDrag'], result2))
+        result3 = readData("./testData/body_8_test/body1_linearDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_1.hydroForce['linearDamping'], result3))
+        result4 = readData("./testData/body_8_test/body1_userDefinedFe.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_1.hydroForce['userDefinedFe'], result4)) 
+        result5 = readData("./testData/body_8_test/body1_re.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_1.hydroForce['fExt']['re'], result5))
+        result6 = readData("./testData/body_8_test/body1_im.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_1.hydroForce['fExt']['im'], result6))
+        result7 = readData("./testData/body_8_test/body1_md.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_1.hydroForce['fExt']['md'], result7))
+        result8 = readData("./testData/body_8_test/body1_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_1.hydroForce['fAddedMass'], result8))
+        result9 = readData("./testData/body_8_test/body1_fDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_1.hydroForce['fDamping'], result9))
+        result10 = readData("./testData/body_8_test/body1_irkb.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_1.hydroForce['irkb'], result10))
+        result11 = readData("./testData/body_8_test/body1_A.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_1.hydroForce['ssRadf']['A'], result11))
+        result12 = readData("./testData/body_8_test/body1_B.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_1.hydroForce['ssRadf']['B'], result12))
+        result13 = readData("./testData/body_8_test/body1_C.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_1.hydroForce['ssRadf']['C'], result13))
+        result14 = readData("./testData/body_8_test/body1_D.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_1.hydroForce['ssRadf']['D'], result14))
+        iBod = 2 #body number
+        self.body_8_2.bodyNumber = 2
+        self.body_8_2.bodyTotal = [2]
+        self.body_8_2.readH5file()
+        self.body_8_2.hydroStiffness = np.zeros((6, 6))
+        self.body_8_2.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
+        self.body_8_2.linearDamping = np.zeros((6, 6))
+        self.body_8_2.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
+        result1 = readData("./testData/body_8_test/body2_linearHydroRestCoef.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_2.hydroForce['linearHydroRestCoef'], result1))
+        result2 = readData("./testData/body_8_test/body2_visDrag.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_2.hydroForce['visDrag'], result2))
+        result3 = readData("./testData/body_8_test/body2_linearDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_2.hydroForce['linearDamping'], result3))
+        result4 = readData("./testData/body_8_test/body2_userDefinedFe.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_2.hydroForce['userDefinedFe'], result4)) 
+        result5 = readData("./testData/body_8_test/body2_re.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_2.hydroForce['fExt']['re'], result5))
+        result6 = readData("./testData/body_8_test/body2_im.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_2.hydroForce['fExt']['im'], result6))
+        result7 = readData("./testData/body_8_test/body2_md.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_2.hydroForce['fExt']['md'], result7))
+        result8 = readData("./testData/body_8_test/body2_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_2.hydroForce['fAddedMass'], result8))
+        result9 = readData("./testData/body_8_test/body2_fDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_2.hydroForce['fDamping'], result9))
+        result10 = readData("./testData/body_8_test/body2_irkb.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_2.hydroForce['irkb'], result10))
+        result11 = readData("./testData/body_8_test/body2_A.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_2.hydroForce['ssRadf']['A'], result11))
+        result12 = readData("./testData/body_8_test/body2_B.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_2.hydroForce['ssRadf']['B'], result12))
+        result13 = readData("./testData/body_8_test/body2_C.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_2.hydroForce['ssRadf']['C'], result13))
+        result14 = readData("./testData/body_8_test/body2_D.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_2.hydroForce['ssRadf']['D'], result14))
+        
+        w = np.conj(np.transpose(readData("./testData/body_9_test/w.mat"))) 
+        waveDir = [0]
+        CIkt = 601
+        CTTime = readData("./testData/body_9_test/CTTime.mat")[0]
+        dt = 0.1
+        rho = 1000
+        g = 9.81
+        waveType = 'regularCIC'
+        waveAmpTime = np.conj(np.transpose(readData("./testData/body_9_test/waveAmpTime.mat"))) 
+        iBod = 1 #body number
+        numBod = [] #later change it to 2 to check
+        ssCalc = 1
+        nlHydro = 0
+        B2B = 1
+        numFreq = []
+        self.body_9_1.bodyNumber = 1
+        self.body_9_1.bodyTotal = [2]
+        self.body_9_1.readH5file()
+        self.body_9_1.hydroStiffness = np.zeros((6, 6))
+        self.body_9_1.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
+        self.body_9_1.linearDamping = np.zeros((6, 6))
+        self.body_9_1.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
+        result1 = readData("./testData/body_9_test/body1_linearHydroRestCoef.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_1.hydroForce['linearHydroRestCoef'], result1))
+        result2 = readData("./testData/body_9_test/body1_visDrag.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_1.hydroForce['visDrag'], result2))
+        result3 = readData("./testData/body_9_test/body1_linearDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_1.hydroForce['linearDamping'], result3))
+        result4 = readData("./testData/body_9_test/body1_userDefinedFe.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_1.hydroForce['userDefinedFe'], result4)) 
+        result5 = readData("./testData/body_9_test/body1_re.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_1.hydroForce['fExt']['re'], result5))
+        result6 = readData("./testData/body_9_test/body1_im.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_1.hydroForce['fExt']['im'], result6))
+        result7 = readData("./testData/body_9_test/body1_md.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_1.hydroForce['fExt']['md'], result7))
+        result8 = readData("./testData/body_9_test/body1_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_1.hydroForce['fAddedMass'], result8))
+        result9 = readData("./testData/body_9_test/body1_fDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_1.hydroForce['fDamping'], result9))
+        result10 = readData("./testData/body_9_test/body1_irkb.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_1.hydroForce['irkb'], result10))
+        result11 = readData("./testData/body_9_test/body1_A.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_1.hydroForce['ssRadf']['A'], result11))
+        result12 = readData("./testData/body_9_test/body1_B.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_1.hydroForce['ssRadf']['B'], result12))
+        result13 = readData("./testData/body_9_test/body1_C.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_1.hydroForce['ssRadf']['C'], result13))
+        result14 = readData("./testData/body_9_test/body1_D.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_1.hydroForce['ssRadf']['D'], result14))
+        iBod = 2 #body number
+        self.body_9_2.bodyNumber = 2
+        self.body_9_2.bodyTotal = [2]
+        self.body_9_2.readH5file()
+        self.body_9_2.hydroStiffness = np.zeros((6, 6))
+        self.body_9_2.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
+        self.body_9_2.linearDamping = np.zeros((6, 6))
+        self.body_9_2.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
+        result1 = readData("./testData/body_9_test/body2_linearHydroRestCoef.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['linearHydroRestCoef'], result1))
+        result2 = readData("./testData/body_9_test/body2_visDrag.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['visDrag'], result2))
+        result3 = readData("./testData/body_9_test/body2_linearDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['linearDamping'], result3))
+        result4 = readData("./testData/body_9_test/body2_userDefinedFe.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['userDefinedFe'], result4)) 
+        result5 = readData("./testData/body_9_test/body2_re.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['fExt']['re'], result5))
+        result6 = readData("./testData/body_9_test/body2_im.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['fExt']['im'], result6))
+        result7 = readData("./testData/body_9_test/body2_md.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['fExt']['md'], result7))
+        result8 = readData("./testData/body_9_test/body2_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['fAddedMass'], result8))
+        result9 = readData("./testData/body_9_test/body2_fDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['fDamping'], result9))
+        result10 = readData("./testData/body_9_test/body2_irkb.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['irkb'], result10))
+        result11 = readData("./testData/body_9_test/body2_A.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['ssRadf']['A'], result11))
+        result12 = readData("./testData/body_9_test/body2_B.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['ssRadf']['B'], result12))
+        result13 = readData("./testData/body_9_test/body2_C.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['ssRadf']['C'], result13))
+        result14 = readData("./testData/body_9_test/body2_D.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['ssRadf']['D'], result14))
+        
         
     def test_regExcitation(self):
         w = 0.785398163397448
@@ -180,6 +648,21 @@ class TestBody(unittest.TestCase):
         self.assertIsNone(np.testing.assert_allclose(self.body_1.hydroForce['fExt']['im'], result2))
         result3 = [0,0,0,0,0,0]
         self.assertIsNone(np.testing.assert_allclose(self.body_1.hydroForce['fExt']['md'], result3))
+        
+        w =np.conj(np.transpose(readData("./testData/body_4_test/w.mat"))) 
+        waveDir = [0]
+        rho = 1000
+        g = 9.81
+        self.body_4_1.bodyNumber = 1
+        self.body_4_1.bodyTotal = 2
+        self.body_4_1.readH5file()
+        self.body_4_1.regExcitation(w,waveDir,rho,g)
+        result1 = readData("./testData/body_4_test/body1_re.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_1.hydroForce['fExt']['re'], result1))
+        result2 = readData("./testData/body_4_test/body1_im.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_1.hydroForce['fExt']['im'], result2))
+        result3 = readData("./testData/body_4_test/body1_md.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_1.hydroForce['fExt']['md'], result3))
         
     def test_irrExcitation(self):
         w = np.conj(np.transpose(np.loadtxt("./testData/body_2_test/w.txt"))) 
@@ -212,24 +695,48 @@ class TestBody(unittest.TestCase):
         result3 = readData("./testData/body_3_test/md.mat")
         self.assertIsNone(np.testing.assert_allclose(self.body_3.hydroForce['fExt']['md'], result3))
         
-    
+    def test_constAddedMassAndDamping(self):
+        w = np.conj(np.transpose(readData("./testData/body_4_test/w.mat"))) 
+        rho = 1000
+        B2B = 0
+        CIkt = 601
+        self.body_4_1.bodyNumber = 1
+        self.body_4_1.bodyTotal = [2]
+        self.body_4_1.readH5file()
+        self.body_4_1.constAddedMassAndDamping(w,CIkt,rho,B2B)
+        result1 = readData("./testData/body_4_test/body1_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_1.hydroForce['fAddedMass'], result1))
+        result2 = readData("./testData/body_4_test/body1_fDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_1.hydroForce['fDamping'], result2))
+        self.body_4_2.bodyNumber = 2
+        self.body_4_2.bodyTotal = [2]
+        self.body_4_2.readH5file()
+        self.body_4_2.constAddedMassAndDamping(w,CIkt,rho,B2B)
+        result3 = readData("./testData/body_4_test/body2_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_2.hydroForce['fAddedMass'], result3))
+        result4 = readData("./testData/body_4_test/body2_fDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_4_2.hydroForce['fDamping'], result4))
         
-    # def test_constAddedMassAndDamping(self):
-    #     """
-    #     tested with Regulr CIC data so i need to check this again
-
-    #     """
-    #     w = 0.785398163397448
-    #     rho = 1000
-    #     B2B = 0
-    #     CIkt = 601
-    #     self.body_1.bodyNumber = 1
-    #     self.body_1.readH5file()
-    #     self.body_1.constAddedMassAndDamping(w,CIkt,rho,B2B)
-    #     result1 =  np.loadtxt("./testData/body_1_test/fAddedMass.txt")
-    #     self.assertIsNone(np.testing.assert_allclose(self.body_1.hydroForce['fAddedMass'], result1))
-    #     result2 =  np.loadtxt("./testData/body_1_test/fDamping.txt")
-    #     self.assertIsNone(np.testing.assert_allclose(self.body_1.hydroForce['fDamping'], result2))
+        w = np.conj(np.transpose(readData("./testData/body_5_test/w.mat"))) 
+        rho = 1000
+        B2B = 1
+        CIkt = 601
+        self.body_5_1.bodyNumber = 1
+        self.body_5_1.bodyTotal = [2]
+        self.body_5_1.readH5file()
+        self.body_5_1.constAddedMassAndDamping(w,CIkt,rho,B2B)
+        result1 = readData("./testData/body_5_test/body1_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_1.hydroForce['fAddedMass'], result1))
+        result2 = readData("./testData/body_5_test/body1_fDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_1.hydroForce['fDamping'], result2))
+        self.body_5_2.bodyNumber = 2
+        self.body_5_2.bodyTotal = [2]
+        self.body_5_2.readH5file()
+        self.body_5_2.constAddedMassAndDamping(w,CIkt,rho,B2B)
+        result3 = readData("./testData/body_5_test/body2_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_2.hydroForce['fAddedMass'], result3))
+        result4 = readData("./testData/body_5_test/body2_fDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_5_2.hydroForce['fDamping'], result4))
         
     def test_irfInfAddedMassAndDamping(self):
         CTTime =  np.array(np.loadtxt("./testData/body_1_test/CTTime.txt"))
@@ -266,10 +773,109 @@ class TestBody(unittest.TestCase):
         self.body_3.bodyNumber = 1
         self.body_3.readH5file()
         self.body_3.irfInfAddedMassAndDamping(CIkt,CTTime,ssCalc,rho,B2B)
-        result8 = readData("./testData/body_3_test/fAddedMass.mat")
-        self.assertIsNone(np.testing.assert_allclose(self.body_3.hydroForce['fAddedMass'], result8))
-        result9 = readData("./testData/body_3_test/irkb.mat")
-        self.assertIsNone(np.testing.assert_allclose(self.body_3.hydroForce['irkb'], result9))
+        result1 = readData("./testData/body_3_test/fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_3.hydroForce['fAddedMass'], result1))
+        result2 = readData("./testData/body_3_test/irkb.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_3.hydroForce['irkb'], result2))
+        
+        CTTime =  readData("./testData/body_7_test/CTTime.mat")[0]
+        ssCalc = 0
+        CIkt = 601
+        B2B = 1
+        rho = 1000
+        self.body_7_1.bodyNumber = 1
+        self.body_7_1.bodyTotal = [2]
+        self.body_7_1.readH5file()
+        self.body_7_1.irfInfAddedMassAndDamping(CIkt,CTTime,ssCalc,rho,B2B)
+        result1 = readData("./testData/body_7_test/body1_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_1.hydroForce['fAddedMass'], result1))
+        result2 = readData("./testData/body_7_test/body1_irkb.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_1.hydroForce['irkb'], result2))
+        self.body_7_2.bodyNumber = 2
+        self.body_7_2.bodyTotal = [2]
+        self.body_7_2.readH5file()
+        self.body_7_2.irfInfAddedMassAndDamping(CIkt,CTTime,ssCalc,rho,B2B)
+        result1 = readData("./testData/body_7_test/body2_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_2.hydroForce['fAddedMass'], result1))
+        result2 = readData("./testData/body_7_test/body2_irkb.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_7_2.hydroForce['irkb'], result2))
+        
+        CTTime = readData("./testData/body_8_test/CTTime.mat")[0]
+        ssCalc = 1
+        CIkt = 601
+        B2B = 0
+        rho = 1000
+        self.body_8_1.bodyNumber = 1
+        self.body_8_1.bodyTotal = [2]
+        self.body_8_1.readH5file()
+        self.body_8_1.irfInfAddedMassAndDamping(CIkt,CTTime,ssCalc,rho,B2B)
+        result1 = readData("./testData/body_8_test/body1_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_1.hydroForce['fAddedMass'], result1))
+        result2 = readData("./testData/body_8_test/body1_irkb.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_1.hydroForce['irkb'], result2))
+        result3 = readData("./testData/body_8_test/body1_A.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_1.hydroForce['ssRadf']['A'], result3))
+        result4 = readData("./testData/body_8_test/body1_B.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_1.hydroForce['ssRadf']['B'], result4))
+        result5 = readData("./testData/body_8_test/body1_C.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_1.hydroForce['ssRadf']['C'], result5))
+        result6 = readData("./testData/body_8_test/body1_D.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_1.hydroForce['ssRadf']['D'], result6))
+        self.body_8_2.bodyNumber = 2
+        self.body_8_2.bodyTotal = [2]
+        self.body_8_2.readH5file()
+        self.body_8_2.irfInfAddedMassAndDamping(CIkt,CTTime,ssCalc,rho,B2B)
+        result1 = readData("./testData/body_8_test/body2_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_2.hydroForce['fAddedMass'], result1))
+        result2 = readData("./testData/body_8_test/body2_irkb.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_2.hydroForce['irkb'], result2))
+        result3 = readData("./testData/body_8_test/body2_A.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_2.hydroForce['ssRadf']['A'], result3))
+        result4 = readData("./testData/body_8_test/body2_B.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_2.hydroForce['ssRadf']['B'], result4))
+        result5 = readData("./testData/body_8_test/body2_C.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_2.hydroForce['ssRadf']['C'], result5))
+        result6 = readData("./testData/body_8_test/body2_D.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_8_2.hydroForce['ssRadf']['D'], result6))
+        
+        CTTime = readData("./testData/body_9_test/CTTime.mat")[0]
+        ssCalc = 1
+        CIkt = 601
+        B2B = 1
+        rho = 1000
+        self.body_9_1.bodyNumber = 1
+        self.body_9_1.bodyTotal = [2]
+        self.body_9_1.readH5file()
+        self.body_9_1.irfInfAddedMassAndDamping(CIkt,CTTime,ssCalc,rho,B2B)
+        result1 = readData("./testData/body_9_test/body1_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_1.hydroForce['fAddedMass'], result1))
+        result2 = readData("./testData/body_9_test/body1_irkb.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_1.hydroForce['irkb'], result2))
+        result3 = readData("./testData/body_9_test/body1_A.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_1.hydroForce['ssRadf']['A'], result3))
+        result4 = readData("./testData/body_9_test/body1_B.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_1.hydroForce['ssRadf']['B'], result4))
+        result5 = readData("./testData/body_9_test/body1_C.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_1.hydroForce['ssRadf']['C'], result5))
+        result6 = readData("./testData/body_9_test/body1_D.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_1.hydroForce['ssRadf']['D'], result6))
+        self.body_9_2.bodyNumber = 2
+        self.body_9_2.bodyTotal = [2]
+        self.body_9_2.readH5file()
+        self.body_9_2.irfInfAddedMassAndDamping(CIkt,CTTime,ssCalc,rho,B2B)
+        result1 = readData("./testData/body_9_test/body2_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['fAddedMass'], result1))
+        result2 = readData("./testData/body_9_test/body2_irkb.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['irkb'], result2))
+        result3 = readData("./testData/body_9_test/body2_A.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['ssRadf']['A'], result3))
+        result4 = readData("./testData/body_9_test/body2_B.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['ssRadf']['B'], result4))
+        result5 = readData("./testData/body_9_test/body2_C.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['ssRadf']['C'], result5))
+        result6 = readData("./testData/body_9_test/body2_D.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['ssRadf']['D'], result6))
+       
        
 if __name__ == '__main__':
     unittest.main()

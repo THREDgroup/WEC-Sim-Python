@@ -112,12 +112,16 @@ class BodyClass:
                                           'md':[]},
                                   'fAddedMass':[],
                                   'fDamping':[],
-                                  'irkb':[]}                                    # Hydrodynamic forces and coefficients used during simulation.
+                                  'irkb':[],
+                                  'ssRadf':{'A':[],
+                                            'B':[],
+                                            'C':[],
+                                            'D':[]}}                            # Hydrodynamic forces and coefficients used during simulation.
         self.h5File            = filename                                       # hdf5 file containing the hydrodynamic data
         self.hydroDataBodyNum  = []                                             # Body number within the hdf5 file.
         self.massCalcMethod    = []                                             # Method used to obtain mass: 'user', 'fixed', 'equilibrium'
         self.bodyNumber        = []                                             # bodyNumber in WEC-Sim as defined in the input file. Can be different from the BEM body number.
-        self.bodyTotal         = []                                             # Total number of WEC-Sim bodies (body block iterations)
+        self.bodyTotal         = 0                                              # Total number of WEC-Sim bodies (body block iterations)
         self.lenJ              = []                                             # Matrices length. 6 for no body-to-body interactions. 6*numBodies if body-to-body interactions.
 
     def __init__(self,filename):
@@ -261,21 +265,21 @@ class BodyClass:
         if waveType == 'noWave':
             self.noExcitation()
             self.constAddedMassAndDamping(w,CIkt,rho,B2B)
-        # elif waveType == 'noWaveCIC':
-        #     self.noExcitation()
-        #     self.irfInfAddedMassAndDamping(CIkt,CTTime,ssCalc,rho,B2B)
-        # elif waveType == 'regular':
-        #     self.regExcitation(w,waveDir,rho,g)
-        #     self.constAddedMassAndDamping(w,CIkt,rho,B2B)
+        elif waveType == 'noWaveCIC':
+            self.noExcitation()
+            self.irfInfAddedMassAndDamping(CIkt,CTTime,ssCalc,rho,B2B)
+        elif waveType == 'regular':
+            self.regExcitation(w,waveDir,rho,g)
+            self.constAddedMassAndDamping(w,CIkt,rho,B2B)
         elif waveType == 'regularCIC':
             self.regExcitation(w,waveDir,rho,g)
             self.irfInfAddedMassAndDamping(CIkt,CTTime,ssCalc,rho,B2B)
         elif waveType == 'irregular' or waveType == 'spectrumImport':
             self.irrExcitation(w,numFreq,waveDir,rho,g)
             self.irfInfAddedMassAndDamping(CIkt,CTTime,ssCalc,rho,B2B)
-        # elif waveType == 'etaImport':
-        #     self.userDefinedExcitation(waveAmpTime,dt,waveDir,rho,g)
-        #     self.irfInfAddedMassAndDamping(CIkt,CTTime,ssCalc,rho,B2B)
+        elif waveType == 'etaImport':
+            self.userDefinedExcitation(waveAmpTime,dt,waveDir,rho,g)
+            self.irfInfAddedMassAndDamping(CIkt,CTTime,ssCalc,rho,B2B)
 
         gbmDOF = self.dof_gbm
         if gbmDOF>0:
@@ -564,10 +568,10 @@ class BodyClass:
             rd[:,:,i] *= self.hydroData['simulation_parameters']['w'][0][i]
         # Change matrix size: B2B [6x6n], noB2B [6x6]
         if B2B == 1:
-            lenJ = 6*self.bodyTotal
-            self.hydroForce['fAddedMass'] = np.zeros((lenJ,6))
-            self.hydroForce['fDamping'] = np.zeros((lenJ,6))
-            self.hydroForce['totDOF']  = np.zeros((lenJ,6))
+            lenJ = 6*int(self.bodyTotal[0])
+            self.hydroForce['fAddedMass'] = np.zeros((6,lenJ))
+            self.hydroForce['fDamping'] = np.zeros((6,lenJ))
+            self.hydroForce['totDOF']  = np.zeros((6,lenJ))
             for ii in range(6):
                 for jj in range(lenJ):
                     s1 = interpolate.CubicSpline(self.hydroData['simulation_parameters']['w'][0], np.squeeze(am[ii,jj,:]))
@@ -625,35 +629,52 @@ class BodyClass:
                 
         # State Space Formulation
         if ssCalc == 1:
-            Af = np.zeros((nDOF,LDOF))
-            Bf = np.zeros((nDOF,LDOF))
-            Cf = np.zeros((nDOF,LDOF))
             if B2B == 1:
                 for ii in range(nDOF):
                     for jj in range(LDOF):
-                        arraySize = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['it'][ii,jj]
+                        arraySize = int(self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['it'][ii,jj])
                         if ii == 0 and jj == 0: # Begin construction of combined state, input, and output matrices
+                            Af = np.zeros((arraySize,arraySize))
+                            Bf = np.zeros((arraySize,LDOF))
+                            Cf = np.zeros((nDOF,arraySize))
                             Af[:arraySize,:arraySize] = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['A']['all'][ii,jj,:arraySize,:arraySize]
                             Bf[:arraySize,jj]         = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['B']['all'][ii,jj,:arraySize,0]
                             Cf[ii,:arraySize]         = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['C']['all'][ii,jj,0,:arraySize]
                         else:
-                            Af[np.size(Af,0)+1:np.size(Af,0)+arraySize,np.size(Af,1)+1:np.size(Af,1)+arraySize] = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['A']['all'][ii,jj,:arraySize,:arraySize]
-                            Bf[np.size(Bf,0)+1:np.size(Bf,0)+arraySize,jj] = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['B']['all'][ii,jj,:arraySize,0]
-                            Cf[ii,np.size(Cf,1)+1:np.size(Cf,1)+arraySize] = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['C']['all'][ii,jj,0,:arraySize]
+                            Ay = np.size(Af,0)
+                            Ax = np.size(Af,1)
+                            Af = np.pad(Af, ((0,arraySize),(0,arraySize)), mode='constant', constant_values=0)
+                            Af[Ay:Ay+arraySize,Ax:Ax+arraySize] = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['A']['all'][ii,jj,:arraySize,:arraySize]
+                            By = np.size(Bf,0)
+                            Bf = np.pad(Bf, ((0,arraySize),(0,0)), mode='constant', constant_values=0)
+                            Bf[By:By+arraySize,jj] = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['B']['all'][ii,jj,:arraySize,0]
+                            Cx = np.size(Cf,1)
+                            Cf = np.pad(Cf, ((0,0),(0,arraySize)), mode='constant', constant_values=0)
+                            Cf[ii,Cx:Cx+arraySize]  = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['C']['all'][ii,jj,0,:arraySize]
                 self.hydroForce['ssRadf']['D'] = np.zeros((nDOF,LDOF))
             else:
                 for ii in range(nDOF):
-                    for jj in range(int(self.dof_start[0]),int(self.dof_end[0])):
+                    for jj in range(int(self.dof_start[0])-1,int(self.dof_end[0])):
                         jInd = jj-int(self.dof_start[0])+1
-                        arraySize = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['it'][ii,jj]
+                        arraySize = int(self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['it'][ii,jj])
                         if ii == 0 and jInd == 0: # Begin construction of combined state, input, and output matrices
+                            Af = np.zeros((arraySize,arraySize))
+                            Bf = np.zeros((arraySize,LDOF))
+                            Cf = np.zeros((nDOF,arraySize))
                             Af[:arraySize,:arraySize] = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['A']['all'][ii,jj,:arraySize,:arraySize]
                             Bf[:arraySize,jInd]       = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['B']['all'][ii,jj,:arraySize,0]
                             Cf[ii,:arraySize]         = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['C']['all'][ii,jj,0,:arraySize]
                         else:
-                            Af[np.size(Af,0)+1:np.size(Af,0)+arraySize,np.size(Af,1)+1:np.size(Af,1)+arraySize] = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['A']['all'][ii,jj,:arraySize,:arraySize]
-                            Bf[np.size(Bf,0)+1:np.size(Bf,0)+arraySize,jj] = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['B']['all'][ii,jj,:arraySize,0]
-                            Cf[ii,np.size(Cf,1)+1:np.size(Cf,1)+arraySize]  = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['C']['all'][ii,jj,0,:arraySize]
+                            Ay = np.size(Af,0)
+                            Ax = np.size(Af,1)
+                            Af = np.pad(Af, ((0,arraySize),(0,arraySize)), mode='constant', constant_values=0)
+                            Af[Ay:Ay+arraySize,Ax:Ax+arraySize] = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['A']['all'][ii,jj,:arraySize,:arraySize]
+                            By = np.size(Bf,0)
+                            Bf = np.pad(Bf, ((0,arraySize),(0,0)), mode='constant', constant_values=0)
+                            Bf[By:By+arraySize,jInd] = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['B']['all'][ii,jj,:arraySize,0]
+                            Cx = np.size(Cf,1)
+                            Cf = np.pad(Cf, ((0,0),(0,arraySize)), mode='constant', constant_values=0)
+                            Cf[ii,Cx:Cx+arraySize]  = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['C']['all'][ii,jj,0,:arraySize]
                 self.hydroForce['ssRadf']['D'] = np.zeros((nDOF,nDOF))
             self.hydroForce['ssRadf']['A'] = Af
             self.hydroForce['ssRadf']['B'] = Bf

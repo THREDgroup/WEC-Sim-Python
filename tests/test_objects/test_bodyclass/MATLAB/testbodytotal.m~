@@ -1,0 +1,47 @@
+clc,clear all; close all;
+%% Simulation Data
+simu = simulationClass();               
+simu.simMechanicsFile = 'rm3/RM3.slx';      
+simu.solver = 'ode4';                   
+simu.explorer='off';                                   
+simu.startTime = 0;                     
+simu.rampTime = 100;                       
+simu.endTime=400;                       
+simu.dt = 0.1; 							
+simu.b2b = 0;                       % Turn B2B interactions 'off'   
+simu.ssCalc = 1;
+
+%% Wave Information 
+% Regular Waves  
+waves = waveClass('regularCIC');    % Regular CIC           
+waves.H = 2.5;                          
+waves.T = 8;                            
+
+%% Body Data
+% Float
+body(1) = bodyClass('rm3/rm3.h5');      
+body(1).geometryFile = 'rm3/float.stl';   
+body(1).mass = 'equilibrium';                   
+body(1).momOfInertia = [20907301 21306090.66 37085481.11];       
+
+% Spar/Plate
+body(2) = bodyClass('rm3/rm3.h5'); 
+body(2).mass = 'equilibrium';                   
+body(2).momOfInertia = [94419614.57 94407091.24 28542224.82];
+body(2).geometryFile = 'rm3/plate.stl'; 
+
+%%
+body(1).bodyNumber = 1;
+body(1).bodyTotal = 2;
+body(1).readH5File();
+body(2).bodyTotal = 2;
+body(2).bodyNumber = 2;
+body(2).readH5File();
+simu.setupSim;
+waves.waveSetup(body(1).hydroData.simulation_parameters.w, body(1).hydroData.simulation_parameters.water_depth, simu.rampTime, simu.dt, simu.maxIt, simu.g, simu.rho,  simu.endTime);
+kk = 1;
+body(kk).hydroForcePre(waves.w,waves.waveDir,simu.CIkt,simu.CTTime,waves.numFreq,simu.dt,...
+    simu.rho,simu.g,waves.type,waves.waveAmpTime,kk,simu.numWecBodies,simu.ssCalc,simu.nlHydro,simu.b2b);
+kk = 2;
+body(kk).hydroForcePre(waves.w,waves.waveDir,simu.CIkt,simu.CTTime,waves.numFreq,simu.dt,...
+    simu.rho,simu.g,waves.type,waves.waveAmpTime,kk,simu.numWecBodies,simu.ssCalc,simu.nlHydro,simu.b2b);
