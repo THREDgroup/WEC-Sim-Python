@@ -38,13 +38,13 @@ import warnings
 import scipy.io as sio
 
 class WaveClass:
-    def inputProperties():
+    def inputProperties(self):
         """
         Set up necessary properties of the wave condition based on input file
     
         Returns 
         -------
-        wType, wT, wH, spectrumType, gamma, phaseSeed, spectrumDataFile,
+        wType, T, H, spectrumType, gamma, phaseSeed, spectrumDataFile,
         etaDataFile, numFreq, waveDir, waveSpread, viz, statisticsDataLoad,
         freqDisc, wavegauge1loc, wavegauge2loc, wavegauge3loc, currentSpeed, 
         currentDirection, currentOption, currentDepth 
@@ -55,102 +55,102 @@ class WaveClass:
         #Can be one of: 'noWave', 'noWaveCIC', 'regular', 'regularCIC','irregular',
         #'spectrumImport', and 'etaImport' 
         #(Default = 'NOT DEFINED').
-        wType = 'NOT DEFINED'
+        self.wType = 'NOT DEFINED'
         
-        #wT - [s] Wave period, peak wave period or BEM period.
+        #T - [s] Wave period, peak wave period or BEM period.
         #Wave period (regular waves), peak period (irregular waves), or period of 
         #BEM data used for hydrodynamic coefficients ('noWave') 
         #(Default = 'NOT DEFINED').     
-        wT = 'NOT DEFINED'
+        self.T = 'NOT DEFINED'
         
-        #wH - % [m] Wave height or significant wave height for irregular
+        #H - % [m] Wave height or significant wave height for irregular
         #Wave height (regular waves) or significant wave height (irregular waves) 
         #(Default = 'NOT DEFINED').   
-        wH = 'NOT DEFINED'
+        self.H = 'NOT DEFINED'
         
         #spectrumType -  String containing the wave spectrum type
         #Can be one of : 'PM', 'BS', and 'JS' 
         #(Default = 'NOT DEFINED'). 
-        spectrumType = 'NOT DEFINED'
+        self.spectrumType = 'NOT DEFINED'
         
         #gamma - Only used for 'JS' spectrum type to define gamma 
         #(Default = 3.3)
-        gamma = 3.3
+        self.gamma = 3.3
         
         #phaseSeed - Only used for irregular waves 
         #if equal to 1,2,3,...,etc, the waves phase is seeded.
         #(Default = 0)
-        phaseSeed = 0
+        self.phaseSeed = 0
         
         #spectrumDataFile - Data file that contains the spectrum data file
         #(Default = 'NOT DEFINED')
-        spectrumDataFile = 'NOT DEFINED'
+        self.spectrumDataFile = 'NOT DEFINED'
         
         #etaDataFile - Data file that contains the times-series data file
         #(Default = 'NOT DEFINED')
-        etaDataFile = 'NOT DEFINED'
+        self.etaDataFile = 'NOT DEFINED'
         
         #freqRange - Min and max frequency for irregular waves. 
         #array with two values, rad/s, (default = frequency range in BEM data)
         #(Default = [])
         #eg. [0.3,0.5]
-        freqRange = []
+        self.freqRange = []
         
         #numFreq - of interpolated wave frequencies 
         #Number of frequencies used, varies depending on method:
         #Traditional = 1000, EqualEnergy = 500 or 'Imported'
         #(Default = 0)
-        numFreq = 0
+        self.numFreq = 0
         
         #waveDir - [deg] Incident wave direction(s)
         #Should be defined as a column vector for more than one wave direction 
         #For multiple wave direction it will be an array of angle in degree
         #[20,45,60,80]
         #(Default = 0)
-        waveDir = [0]
+        self.waveDir = [0]
         
         #waveSpread - Wave Spread probability associated with wave direction(s)
         #Should be defined as a column vector for more than one wave direction
         #For multiple wave direction it will be an array that corresponds to 
         #wave direction [20,45,60,80]
         #(Default = [1])
-        waveSpread = [1]
+        self.waveSpread = [1]
         
         #viz - Dictionary defining visualization options
         #Should be a dictionary containing the fields 'numPointsX' and 'numPointsY'. 
         #numPointsX is the number of visualization points in x direction, and 
         #numPointsY the number of visualization points in y direction
-        viz = {'numPointsX': 50,'numPointsY': 50 }
+        self.viz = {'numPointsX': 50,'numPointsY': 50 }
         
         #statisticsDataLoad - File name from which to load wave statistics data
         #(Default = [])
-        statisticsDataLoad = []
+        self.statisticsDataLoad = []
         
         #freqDisc - Method of frequency discretization for irregular waves. 
         #Options for this variable are 'EqualEnergy' or 'Traditional'.
         #(Default = 'EqualEnergy').
-        freqDisc = 'EqualEnergy'
+        self.freqDisc = 'EqualEnergy'
      
         #wavegauge1loc - [m] Wave gauge 1 [x,y] location
         #(Default = [0,0]).
-        wavegauge1loc = [0,0]
+        self.wavegauge1loc = [0,0]
         
         #wavegauge2loc - [m] Wave gauge 2 [x,y] location
         #(Default = [0,0]).
-        wavegauge2loc = [0,0]
+        self.wavegauge2loc = [0,0]
     
         #wavegauge3loc - [m] Wave gauge 3 [x,y] location
         #(Default = [0,0]).
-        wavegauge3loc = [0,0]
+        self.wavegauge3loc = [0,0]
         
         #currentSpeed - [m/s] Surface current speed that is uniform along the 
         #water column.
         #(Default = 0).
-        currentSpeed = 0
+        self.currentSpeed = 0
       
         #currentDirection - [deg] Surface current direction.
         #(Default = 0).
-        currentDirection = 0
+        self.currentDirection = 0
         
         #currentOption - [-] Define the sub-surface current model to be used in 
         #WEC-Sim.
@@ -159,86 +159,76 @@ class WaveClass:
         #1 : 1/7 power law variation with depth
         #2 : linear variation with depth
         #3 : no current
-        currentOption = 3
+        self.currentOption = 3
         
         #currentDepth - [m] Define the depth over which the sub-surface current is 
         #modeled.
         #For options (1) and (2) the currentDepth must be defined. The
         #current is not calculated for any depths greater than the
         #specified currentDepth. (Default = 0).
-        currentDepth = 0
-        
-        return(wType, wT, wH, spectrumType, gamma, phaseSeed, spectrumDataFile,\
-               etaDataFile, freqRange, numFreq, waveDir, waveSpread, viz, \
-               statisticsDataLoad, freqDisc, wavegauge1loc, wavegauge2loc, \
-               wavegauge3loc, currentSpeed, currentDirection, currentOption, \
-               currentDepth)
+        self.currentDepth = 0
     
-    def _internalProperties():
+    def _internalProperties(self):
         """
         The following properties are for internal use
     
         Returns
         -------
         typeNum, bemFreq, waterDepth, deepWaterWave, waveAmpTime,waveAmpTime1, 
-        waveAmpTime2, waveAmpTime3, wA, wF, phase, dw, wk, wS, wP
+        waveAmpTime2, waveAmpTime3, A, w, phase, dw, k, S, Pw
     
         """
         
         #typeNum - Number to represent different type of waves
-        typeNum = []
+        self.typeNum = []
         
         #bemFreq - Number of wave frequencies from BEM
-        bemFreq = []
+        self.bemFreq = []
         
         #waterDepth - [m] Water depth (from BEM)
-        waterDepth = []
+        self.waterDepth = []
         
         #deepWaterWave - Deep water or not, depending on input from WAMIT, 
         #NEMOH and AQWA
-        deepWaterWave = []
+        self.deepWaterWave = []
         
         #waveAmpTime - [m] Wave elevation time history
-        waveAmpTime = []
+        self.waveAmpTime = []
         
         #waveAmpTime1 - [m] Wave elevation time history at a wave gauge 1 location 
         #specified by user
-        waveAmpTime1 = []
+        self.waveAmpTime1 = []
         
         #waveAmpTime2 - [m] Wave elevation time history at a wave gauge 2 location 
         #specified by user
-        waveAmpTime2 = []
+        self.waveAmpTime2 = []
         
         #waveAmpTime3 - [m] Wave elevation time history at a wave gauge 3 location 
         #specified by user
-        waveAmpTime3 = []
+        self.waveAmpTime3 = []
         
         #A - [m] Wave amplitude for regular waves or 2*(wave spectrum vector) for 
         #irregular waves
-        wA = [] 
+        self.A = [] 
         
         #w - [rad/s] Wave frequency (regular waves) or 
         #wave frequency vector (irregular waves)
-        wF = []
+        self.w = []
         
         #phase - [rad] Wave phase (only used for irregular waves)
-        phase = 0
+        self.phase = 0
         
         #dw - [rad] Frequency spacing for irregular waves.
-        dw = 0 
+        self.dw = 0 
         
         #k - Wave Number
-        wk = []
+        self.k = []
         
         #S - Wave Spectrum [m^2-s/rad] for 'Traditional'
-        wS = []
+        self.S = []
         
         #Pw - Wave Power Per Unit Wave Crest [W/m]
-        wP = []
-        
-        return(typeNum, bemFreq, waterDepth, deepWaterWave, waveAmpTime,\
-               waveAmpTime1, waveAmpTime2, waveAmpTime3, wA, wF, phase, dw, wk,\
-               wS, wP)
+        self.Pw = []
             
     def __init__(self,wType):
         """
@@ -253,7 +243,7 @@ class WaveClass:
         
         self.wType = wType
         self.gamma = 3.3
-        self.wF = []
+        self.w = []
         
         if self.wType == 'noWave': #No Waves with Constant Hydrodynamic Coefficients
             self.typeNum = 0
@@ -294,15 +284,15 @@ class WaveClass:
         Does not get used in any method
 
         """
-        m0 = np.trapz(self.wS, x = self.wF)
+        m0 = np.trapz(self.S, x = self.w)
         HsTest = 4*np.sqrt(m0)
-        I = np.argmax(np.abs(self.wS))
-        wp = self.wF[I]
+        I = np.argmax(np.abs(self.S))
+        wp = self.w[I]
         TpTest = 2*np.pi/wp
         plt.figure(figsize=(10,8))
-        plt.plot(self.wF,self.wS,'s-')
-        plt.plot(wp,np.array(max(self.wS)))
-        plt.xlim([0, max(self.wF)])
+        plt.plot(self.w,self.S,'s-')
+        plt.plot(wp,np.array(max(self.S)))
+        plt.xlim([0, max(self.w)])
         plt.title([self.spectrumType, ' Spectrum, T_p= ' + str(TpTest) + ' [s], H_m_0= ' + str(HsTest) + ', [m]'])
         if self.spectrumType == 'JS':
             plt.title([self.spectrumType, ' Spectrum, T_p= ' + str(TpTest) + ' [s], H_m_0= ' + str(HsTest) + ', [m], gamma = ' + str(self.gamma)])
@@ -319,16 +309,16 @@ class WaveClass:
         self.bemFreq = bemFreq  # array of the beam frequency from BEMIO. Only the max and min values gets used.
         self.setWaveProps(wDepth) # method called to set up wave properties.
         if (self.wType == 'noWave') or (self.wType == 'noWaveCIC'):
-            if np.size(self.wF) == 0:
-                self.wF = 2*np.pi/self.wT
-            self.waveNumber(g) # used to set self.wk
-            self.wA = self.wH/2
+            if np.size(self.w) == 0:
+                self.w = 2*np.pi/self.T
+            self.waveNumber(g) # used to set self.k
+            self.A = self.H/2
             self.waveElevNowave(maxIt,dt) # method called to set wave elevation
         elif (self.wType == 'regular') or (self.wType == 'regularCIC'):
-            if np.size(self.wF) == 0:
-                self.wF = 2*np.pi/self.wT
-            self.wA = self.wH/2
-            self.waveNumber(g) # used to set self.wk
+            if np.size(self.w) == 0:
+                self.w = 2*np.pi/self.T
+            self.A = self.H/2
+            self.waveNumber(g) # used to set self.k
             self.waveElevReg(rampTime, dt, maxIt) # method called to set wave elevation
             self.wavePowerReg(g,rho) # method called to find wave power
         elif (self.wType == 'irregular') or (self.wType == 'spectrumImport'):
@@ -346,27 +336,27 @@ class WaveClass:
             if self.freqDisc == 'Traditional':    # Traditional method of computing. Refer to theory of waveclass provided by WEC-Sim to understand the theory.
                 if np.size(self.numFreq) == 0:  # numfreq for Traditional is 1000 for default
                     self.numFreq = 1000
-                self.wF = np.arange(WFQSt,WFQEd+((WFQEd-WFQSt)/(self.numFreq-1)),(WFQEd-WFQSt)/(self.numFreq-1))
+                self.w = np.arange(WFQSt,WFQEd+((WFQEd-WFQSt)/(self.numFreq-1)),(WFQEd-WFQSt)/(self.numFreq-1))
                 self.dw = np.ones(shape=(self.numFreq,1))*(WFQEd-WFQSt)/(self.numFreq-1)
             elif self.freqDisc == 'EqualEnergy':    # Default way of computing irregular wave. Refer to theory of waveclass provided by WEC-Sim to understand the theory.
                 numFreq_interp = 500000     # number of interpolation that will set array size for SF and S_f used in irregWaveSpectrum method. Lowering this value might decrease the run time but accuracy will decrease
-                self.wF = np.arange(WFQSt,WFQEd+((WFQEd-WFQSt)/numFreq_interp),(WFQEd-WFQSt)/numFreq_interp)
-                self.dw = np.mean(np.diff(self.wF))
+                self.w = np.arange(WFQSt,WFQEd+((WFQEd-WFQSt)/numFreq_interp),(WFQEd-WFQSt)/numFreq_interp)
+                self.dw = np.mean(np.diff(self.w))
                 if np.size(self.numFreq) == 0:  # numfreq for EqualEnergy is 500 for default
                     self.numFreq = 500
             elif self.freqDisc == 'Imported': # set from setWaveProps method
                 data = self.readData(self.spectrumDataFile) # call on readData method to get files in both mat file and txt file
                 freq_data = data[0] # the first row out of the three rows in spectrum data file is frequency
-                self.wF = np.array([i*2*np.pi for i in freq_data 
+                self.w = np.array([i*2*np.pi for i in freq_data 
                                     if i>=min(bemFreq)/2/np.pi and i<=max(bemFreq)/2/np.pi])
-                self.numFreq = len(self.wF)
+                self.numFreq = len(self.w)
                 self.dw = np.zeros(self.numFreq)
-                self.dw[0]= np.array(self.wF[1]-self.wF[0])
-                self.dw[1:self.numFreq-1]= np.array((self.wF[2:]-self.wF[:-2])/2)
-                self.dw[self.numFreq-1]= np.array(self.wF[-1]-self.wF[-2])
+                self.dw[0]= np.array(self.w[1]-self.w[0])
+                self.dw[1:self.numFreq-1]= np.array((self.w[2:]-self.w[:-2])/2)
+                self.dw[self.numFreq-1]= np.array(self.w[-1]-self.w[-2])
             self.setWavePhase() # method called to generate wave phase. there can be multiple phase if there are more than one wave direction
             self.irregWaveSpectrum(g,rho) # method called to calculate for different kinds of irregular wave calculation methods
-            self.waveNumber(g) # used to set self.wk
+            self.waveNumber(g) # used to set self.k
             self.waveElevIrreg(rampTime, dt, maxIt, self.dw) # method called to set wave elevation
         elif self.wType == 'etaImport':
             #Import 'etaImport' time-series here and interpolate
@@ -394,19 +384,19 @@ class WaveClass:
             self.deepWaterWave = 0  # means shallow water
             self.waterDepth = wDepth # set it to specific water depth. Can cause warning when some calculations reach infinity
         if self.wType == 'noWave':
-            self.wH = 0     # set wave height as 0
+            self.H = 0     # set wave height as 0
         elif self.wType == 'noWaveCIC':
-            self.wH = 0     # set wave height as 0
-            if np.size(self.wF) == 0 and self.wT == 'NOT DEFINED':
-                self.wF = np.min(self.bemFreq)
-                self.wT = 2*np.pi/self.wF
-            elif np.size(self.wF) == 0:
-                self.wF = 2*np.pi/self.wT
+            self.H = 0     # set wave height as 0
+            if np.size(self.w) == 0 and self.T == 'NOT DEFINED':
+                self.w = np.min(self.bemFreq)
+                self.T = 2*np.pi/self.w
+            elif np.size(self.w) == 0:
+                self.w = 2*np.pi/self.T
             else:
-                self.wT = 2*np.pi/self.wF
+                self.T = 2*np.pi/self.w
         elif self.wType == 'spectrumImport':
-            self.wH = 0
-            self.wT = 0
+            self.H = 0
+            self.T = 0
             self.freqDisc = 'Imported' # one of the type of freqDisc that used later in waveSetup method 
             self.spectrumType = 'spectrumImport'
              
@@ -415,10 +405,10 @@ class WaveClass:
         Calculate wave number
 
         """
-        self.wk= self.wF**2/g # general method of calculating wk
-        if self.deepWaterWave == 0: # calculate wk directly from specific water depth
+        self.k= self.w**2/g # general method of calculating k
+        if self.deepWaterWave == 0: # calculate k directly from specific water depth
             for i in range(100):
-                self.wk = self.wF**2/g/np.tanh(self.wk*self.waterDepth)
+                self.k = self.w**2/g/np.tanh(self.k*self.waterDepth)
 
     def readData(self,file):
         """
@@ -478,16 +468,16 @@ class WaveClass:
         t = np.arange(maxIt+1)*dt # array of time with dt time steps
         self.waveAmpTime = [t,[]]
         if rampTime == 0:
-            c1 = self.wF*t
-            self.waveAmpTime[1]    = self.wA*np.cos(c1)
+            c1 = self.w*t
+            self.waveAmpTime[1]    = self.A*np.cos(c1)
         else:
             maxRampIT = int(np.round(rampTime/dt))
             t = np.arange(maxRampIT)*dt # array of time with dt time steps until maxRampIT
             t2 = np.arange(maxRampIT,maxIt+1)*dt # array of time with dt time steps from maxRampIT to the end
-            c1 = self.wF*t
-            c2 = self.wF*t2
+            c1 = self.w*t
+            c2 = self.w*t2
             ad = (1+np.cos(np.pi+np.pi*np.arange(maxRampIT)/maxRampIT))/2
-            self.waveAmpTime[1]    = np.append(self.wA*np.cos(c1)*ad, self.wA*np.cos(c2))
+            self.waveAmpTime[1]    = np.append(self.A*np.cos(c1)*ad, self.A*np.cos(c2))
         self.waveAmpTime1 = self.waveAmpTime # if wave guage location is not set, wave elevation is same as waveAmpTime
         self.waveAmpTime2 = self.waveAmpTime # if wave guage location is not set, wave elevation is same as waveAmpTime
         self.waveAmpTime3 = self.waveAmpTime # if wave guage location is not set, wave elevation is same as waveAmpTime
@@ -497,21 +487,21 @@ class WaveClass:
             self.waveAmpTime2 = [t,[]] # set to empty array of wave elevation. If it is not set, error occurs
             self.waveAmpTime3 = [t,[]] # set to empty array of wave elevation. If it is not set, error occurs
             if rampTime == 0:
-                c1 = self.wF*t # multiple of array of frequency and time with dt time steps
+                c1 = self.w*t # multiple of array of frequency and time with dt time steps
                 c_cos = np.cos(self.waveDir[0]*np.pi/180)
                 c_sin = np.sin(self.waveDir[0]*np.pi/180)
-                self.waveAmpTime1[1]   = self.wA*np.cos(c1-self.wk*(self.wavegauge1loc[0]*c_cos + self.wavegauge1loc[1]*c_sin))
-                self.waveAmpTime2[1]   = self.wA*np.cos(c1-self.wk*(self.wavegauge2loc[0]*c_cos + self.wavegauge2loc[1]*c_sin))
-                self.waveAmpTime3[1]   = self.wA*np.cos(c1-self.wk*(self.wavegauge3loc[0]*c_cos + self.wavegauge3loc[1]*c_sin))
+                self.waveAmpTime1[1]   = self.A*np.cos(c1-self.k*(self.wavegauge1loc[0]*c_cos + self.wavegauge1loc[1]*c_sin))
+                self.waveAmpTime2[1]   = self.A*np.cos(c1-self.k*(self.wavegauge2loc[0]*c_cos + self.wavegauge2loc[1]*c_sin))
+                self.waveAmpTime3[1]   = self.A*np.cos(c1-self.k*(self.wavegauge3loc[0]*c_cos + self.wavegauge3loc[1]*c_sin))
             else:
                 c_cos = np.cos(self.waveDir[0]*np.pi/180)
                 c_sin = np.sin(self.waveDir[0]*np.pi/180)
-                self.waveAmpTime1[1]   = np.append(self.wA*np.cos(c1-self.wk*(self.wavegauge1loc[0]*c_cos + self.wavegauge1loc[1]*c_sin))*ad, 
-                                                   self.wA*np.cos(c2-self.wk*(self.wavegauge1loc[0]*c_cos + self.wavegauge1loc[1]*c_sin)))
-                self.waveAmpTime2[1]   = np.append(self.wA*np.cos(c1-self.wk*(self.wavegauge2loc[0]*c_cos + self.wavegauge2loc[1]*c_sin))*ad, 
-                                                   self.wA*np.cos(c2-self.wk*(self.wavegauge2loc[0]*c_cos + self.wavegauge2loc[1]*c_sin)))
-                self.waveAmpTime3[1]   = np.append(self.wA*np.cos(c1-self.wk*(self.wavegauge3loc[0]*c_cos + self.wavegauge3loc[1]*c_sin))*ad, 
-                                                   self.wA*np.cos(c2-self.wk*(self.wavegauge3loc[0]*c_cos + self.wavegauge3loc[1]*c_sin)))
+                self.waveAmpTime1[1]   = np.append(self.A*np.cos(c1-self.k*(self.wavegauge1loc[0]*c_cos + self.wavegauge1loc[1]*c_sin))*ad, 
+                                                   self.A*np.cos(c2-self.k*(self.wavegauge1loc[0]*c_cos + self.wavegauge1loc[1]*c_sin)))
+                self.waveAmpTime2[1]   = np.append(self.A*np.cos(c1-self.k*(self.wavegauge2loc[0]*c_cos + self.wavegauge2loc[1]*c_sin))*ad, 
+                                                   self.A*np.cos(c2-self.k*(self.wavegauge2loc[0]*c_cos + self.wavegauge2loc[1]*c_sin)))
+                self.waveAmpTime3[1]   = np.append(self.A*np.cos(c1-self.k*(self.wavegauge3loc[0]*c_cos + self.wavegauge3loc[1]*c_sin))*ad, 
+                                                   self.A*np.cos(c2-self.k*(self.wavegauge3loc[0]*c_cos + self.wavegauge3loc[1]*c_sin)))
 
     def wavePowerReg(self,g,rho):
         """
@@ -520,10 +510,10 @@ class WaveClass:
         """
         if self.deepWaterWave == 1:
             # Deepwater Approximation
-            self.wP = 1/(8*np.pi)*rho*g**(2)*(self.wA)**(2)*self.wT
+            self.Pw = 1/(8*np.pi)*rho*g**(2)*(self.A)**(2)*self.T
         else:
             # Full Wave Power Equation
-            self.wP = rho*g*(self.wA)**(2)/4*np.sqrt(g/self.wk*np.tanh(self.wk*self.waterDepth))*(1+2*self.wk*self.waterDepth/np.sinh(self.wk*self.waterDepth))
+            self.Pw = rho*g*(self.A)**(2)/4*np.sqrt(g/self.k*np.tanh(self.k*self.waterDepth))*(1+2*self.k*self.waterDepth/np.sinh(self.k*self.waterDepth))
         
     def irregWaveSpectrum(self,g,rho):
         """
@@ -531,22 +521,22 @@ class WaveClass:
         Check theory section in WEC-Sim documentation for a reference
         
         """
-        freq = self.wF/(2*np.pi)
-        Tp = self.wT
-        Hs = self.wH
+        freq = self.w/(2*np.pi)
+        Tp = self.T
+        Hs = self.H
         if self.spectrumType == 'PM':
             # Pierson-Moskowitz Spectrum from Tucker and Pitt (2001)
             B_PM = (5/4)*(1/Tp)**(4)
             A_PM = 0.0081*g**2*(2*np.pi)**(-4)
             S_f  = (A_PM*freq**(-5)*np.exp(-B_PM*freq**(-4)))              # Wave Spectrum [m^2-s] for 'EqualEnergy'
-            self.wS = S_f/(2*np.pi)                                      # Wave Spectrum [m^2-s/rad] for 'Traditional'
-            S_f = self.wS*2*np.pi
+            self.S = S_f/(2*np.pi)                                      # Wave Spectrum [m^2-s/rad] for 'Traditional'
+            S_f = self.S*2*np.pi
         elif self.spectrumType == 'BS':
             # Bretschneider Sprectrum from Tucker and Pitt (2001)
             B_BS = (1.057/Tp)**4
             A_BS = B_BS*(Hs/2)**2
             S_f = (A_BS*freq**(-5)*np.exp(-B_BS*freq**(-4)))               # Wave Spectrum [m^2-s]
-            self.wS = S_f/(2*np.pi)                                      # Wave Spectrum [m^2-s/rad]
+            self.S = S_f/(2*np.pi)                                      # Wave Spectrum [m^2-s/rad]
         elif self.spectrumType == 'JS':
             # JONSWAP Spectrum from Hasselmann et. al (1973)
             fp = 1/Tp
@@ -560,7 +550,7 @@ class WaveClass:
             S_temp = g**2*(2*np.pi)**(-4)*freq**(-5)*np.exp(-(5/4)*(freq/fp)**(-4))
             alpha_JS = Hs**(2)/16/np.trapz(S_temp*Gf,freq)
             S_f = alpha_JS*S_temp*Gf                                 # Wave Spectrum [m^2-s]
-            self.wS = S_f/(2*np.pi)                                       # Wave Spectrum [m^2-s/rad]
+            self.S = S_f/(2*np.pi)                                       # Wave Spectrum [m^2-s/rad]
         elif self.spectrumType == 'spectrumImport':
             # Imported Wave Spectrum
             data = self.readData(self.spectrumDataFile)
@@ -568,16 +558,16 @@ class WaveClass:
             S_data = data[1]
             S_f = np.array([x for x,i in zip(S_data,freq_data) 
                             if i>=min(self.bemFreq)/2/np.pi and i<=max(self.bemFreq)/2/np.pi])       # Wave Spectrum [m^2-s] for 'EqualEnergy'
-            self.wS = S_f/(2*np.pi)                                      # Wave Spectrum [m^2-s/rad] for 'Traditional'
+            self.S = S_f/(2*np.pi)                                      # Wave Spectrum [m^2-s/rad] for 'Traditional'
             print('\t"spectrumImport" uses the number of imported wave frequencies (not "Traditional" or "EqualEnergy")\n')
             # Power per Unit Wave Crest
         self.waveNumber(g)                                          # Calculate Wave Number for Larger Number of Frequencies Before Down Sampling in Equal Energy Method
         if self.deepWaterWave == 1:
             # Deepwater Approximation
-            self.Pw = np.sum(1/2*rho*g**(2)*S_f*self.dw/self.wF)
+            self.Pw = np.sum(1/2*rho*g**(2)*S_f*self.dw/self.w)
         else:
             # Full Wave Power Equation
-            self.Pw = np.sum((1/2)*rho*g*S_f*self.dw*np.sqrt(9.81/self.wk*np.tanh(self.wk*self.waterDepth))*(1 + 2*self.wk*self.waterDepth/np.sinh(2*self.wk*self.waterDepth)))
+            self.Pw = np.sum((1/2)*rho*g*S_f*self.dw*np.sqrt(9.81/self.k*np.tanh(self.k*self.waterDepth))*(1 + 2*self.k*self.waterDepth/np.sinh(2*self.k*self.waterDepth)))
         if self.freqDisc == 'EqualEnergy':
             m0 = np.trapz(np.abs(S_f),freq)
             numBins = self.numFreq+1
@@ -587,9 +577,9 @@ class WaveClass:
             # start of the midified code:
             
             wn = [np.argmin(np.abs(SF-(x+1)*a_targ))+1 for x in range(numBins)]
-            self.wF = 2*np.pi*freq[wn[:len(wn)-1]]
-            self.dw = np.append(self.wF[0]-2*np.pi*freq[0],np.diff(self.wF)) 
-            self.wS = self.wS[wn[:len(wn)-1]]                         # Wave Spectrum [m^2-s/rad] 
+            self.w = 2*np.pi*freq[wn[:len(wn)-1]]
+            self.dw = np.append(self.w[0]-2*np.pi*freq[0],np.diff(self.w)) 
+            self.S = self.S[wn[:len(wn)-1]]                         # Wave Spectrum [m^2-s/rad] 
             
             # end of the modified code:
             
@@ -618,13 +608,13 @@ class WaveClass:
             #     wna.append(np.argmin(a_targ_value))
             #     wn.append(wna[kk]+wn[kk])
             #     a_bins.append(np.trapz(np.abs(S_f[np.arange(wn[kk],wn[kk]+1)-1]),freq[np.arange(wn[kk],wn[kk]+1)-1]))   
-            # self.wF = 2*np.pi*freq[wn[1:len(wn)-1]]
-            # self.dw = np.append(self.wF[0]-2*np.pi*freq[wn[0]-1],np.diff(self.wF)) 
-            # self.wS = self.wS[wn[1:len(wn)-1]]                         # Wave Spectrum [m^2-s/rad] 
+            # self.w = 2*np.pi*freq[wn[1:len(wn)-1]]
+            # self.dw = np.append(self.w[0]-2*np.pi*freq[wn[0]-1],np.diff(self.w)) 
+            # self.S = self.S[wn[1:len(wn)-1]]                         # Wave Spectrum [m^2-s/rad] 
             #
             # end of the original code:
                 
-        self.wA = 2 * self.wS   # Wave Amplitude [m]
+        self.A = 2 * self.S   # Wave Amplitude [m]
            
     def waveElevIrreg(self,rampTime,dt,maxIt,df):
         """
@@ -642,8 +632,8 @@ class WaveClass:
         self.waveAmpTime = [t,initialZeros]
         maxRampIT=int(np.round(rampTime/dt))
         iiter = np.size(self.waveDir)
-        tmp = np.sqrt(np.matlib.repmat(self.wA,iiter,1)*np.matlib.repmat(df,iiter,1)*np.transpose([self.waveSpread,]))
-        c1 = np.matlib.repmat(self.wF,iiter,1) # matlib.repmat method that repeats arrays which results in matrix form of arrays
+        tmp = np.sqrt(np.matlib.repmat(self.A,iiter,1)*np.matlib.repmat(df,iiter,1)*np.transpose([self.waveSpread,]))
+        c1 = np.matlib.repmat(self.w,iiter,1) # matlib.repmat method that repeats arrays which results in matrix form of arrays
         if rampTime == 0:
             for i in range(maxIt+1): # keeping for loop was faster than changing it to all matrix computation even when there were multiple wave direction
                 t       = (i)*dt
@@ -663,7 +653,7 @@ class WaveClass:
         self.waveAmpTime2 = self.waveAmpTime # if wave guage location is not set, wave elevation is same as waveAmpTime
         self.waveAmpTime3 = self.waveAmpTime # if wave guage location is not set, wave elevation is same as waveAmpTime   
         if self.wavegauge1loc[0] != 0 or self.wavegauge1loc[1] != 0 or self.wavegauge2loc[0] != 0 or self.wavegauge2loc[1] != 0 or self.wavegauge3loc[0] != 0 or self.wavegauge3loc[1] != 0:
-            c2 = np.matlib.repmat(self.wk,iiter,1)
+            c2 = np.matlib.repmat(self.k,iiter,1)
             c_cos = np.cos(np.transpose([self.waveDir,])*np.pi/180)
             c_sin = np.sin(np.transpose([self.waveDir,])*np.pi/180)
             t = np.arange(maxIt+1)*dt # array of time with dt time steps
@@ -724,27 +714,27 @@ class WaveClass:
         print('\n Wave Environment: \n')
         if self.wType == 'noWave':
             print('\tWave Type                            = No Wave (Constant Hydrodynamic Coefficients)\n')
-            print('\tHydro Data Wave Period, T (sec)    	= {:f}\n'.format(self.wT))
+            print('\tHydro Data Wave Period, T (sec)    	= {:f}\n'.format(self.T))
         if self.wType == 'regular':
             print('\tWave Type                            = Regular Waves (Constant Hydrodynamic Coefficients)\n')
-            print('\tWave Height, H (m)                   = {:f}\n'.format(self.wH))
-            print('\tWave Period, T (sec)                 = {:f}\n'.format(self.wT))
+            print('\tWave Height, H (m)                   = {:f}\n'.format(self.H))
+            print('\tWave Period, T (sec)                 = {:f}\n'.format(self.T))
         if self.wType == 'noWaveCIC':
             print('\tWave Type                            = No Wave (Convolution Integral Calculation)\n')
         if self.wType == 'regularCIC':
             print('\tWave Type                            = Regular Waves (Convolution Integral Calculation)\n')
-            print('\tWave Height, H (m)                   = {:f}\n'.format(self.wH))
-            print('\tWave Period, T (sec)                 = {:f}\n'.format(self.wT))
+            print('\tWave Height, H (m)                   = {:f}\n'.format(self.H))
+            print('\tWave Period, T (sec)                 = {:f}\n'.format(self.T))
         if self.wType == 'irregular':
             if self.phaseSeed == 0:
                 print('\tWave Type                            = Irregular Waves (Arbitrary Random Phase)\n')
             else:
                 print('\tWave Type                            = Irregular Waves (Predefined Random Phase)\n')
             self.printWaveSpectrumType
-            print('\tSignificant Wave Height, Hs      (m) = {:f}\n'.format(self.wH))
+            print('\tSignificant Wave Height, Hs      (m) = {:f}\n'.format(self.H))
             if self.spectrumType == 'PM':
                 print('\tNOTE: Pierson-Moskowitz does not use Hs to define spectrum\n')
-            print('\tPeak Wave Period, Tp           (sec) = {:f}\n'.format(self.wT))
+            print('\tPeak Wave Period, Tp           (sec) = {:f}\n'.format(self.T))
         if self.wType == 'spectrumImport':
             if np.size(np.loadtxt(self.spectrumDataFile),1) == 3:
                 print('\tWave Type                            = Irregular waves with imported wave spectrum (Imported Phase)\n')
@@ -763,7 +753,7 @@ class WaveClass:
 
         """
         # 'noWave' period undefined for hydro data
-        if (self.wType == 'noWave') and (self.wT == 'NOT DEFINED'):
+        if (self.wType == 'noWave') and (self.T == 'NOT DEFINED'):
             warnings.warn('"waves.T" must be defined for the hydrodynamic data period when using the "noWave" wave type',DeprecationWarning)
         # spectrumDataFile defined for 'spectrumImport' case
         if (self.wType == 'spectrumImport') and (self.spectrumDataFile == 'NOT DEFINED'):
