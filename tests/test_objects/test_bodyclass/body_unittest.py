@@ -47,6 +47,7 @@ class TestBody(unittest.TestCase):
         self.body_8_2 = BodyClass('rm3.h5') #regularCIC B2B_Case5:b2b = 0,ssCalc = 1
         self.body_9_1 = BodyClass('rm3.h5') #regularcIC B2B_Case6:b2b = 1,ssCalc = 1
         self.body_9_2 = BodyClass('rm3.h5') #regularcIC B2B_Case6:b2b = 1,ssCalc = 1
+        #self.body_10_1 = BodyClass('rm3.h5') #regular nlhydro
         
     def tearDown(self):
         print("tearDown\n")
@@ -73,6 +74,7 @@ class TestBody(unittest.TestCase):
         self.body_1.hydroStiffness = np.zeros((6, 6))
         self.body_1.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
         self.body_1.linearDamping = np.zeros((6, 6))
+        self.body_1.mass = 'equilibrium'
         self.body_1.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
         result1 = np.loadtxt("./testData/body_1_test/linearHydroRestCoef.txt")
         self.assertIsNone(np.testing.assert_allclose(self.body_1.hydroForce['linearHydroRestCoef'], result1))
@@ -114,6 +116,7 @@ class TestBody(unittest.TestCase):
         self.body_2.hydroStiffness = np.zeros((6, 6))
         self.body_2.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
         self.body_2.linearDamping = np.zeros((6, 6))
+        self.body_2.mass = 'equilibrium'
         self.body_2.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
         result1 = np.loadtxt("./testData/body_2_test/linearHydroRestCoef.txt")
         self.assertIsNone(np.testing.assert_allclose(self.body_2.hydroForce['linearHydroRestCoef'], result1))
@@ -133,6 +136,7 @@ class TestBody(unittest.TestCase):
         self.assertIsNone(np.testing.assert_allclose(self.body_2.hydroForce['fAddedMass'], result8))
         result9 = readData("./testData/body_2_test/irkb.mat")
         self.assertIsNone(np.testing.assert_allclose(self.body_2.hydroForce['irkb'], result9))
+        self.assertIsNone(np.testing.assert_allclose(self.body_2.mass, 725834))
         
         #OSWEC example from WEC-Sim
         w = np.conj(np.transpose(readData("./testData/body_3_test/w.mat"))) 
@@ -155,6 +159,7 @@ class TestBody(unittest.TestCase):
         self.body_3.hydroStiffness = np.zeros((6, 6))
         self.body_3.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
         self.body_3.linearDamping = np.zeros((6, 6))
+        self.body_3.mass = 127000
         self.body_3.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
         result1 = readData("./testData/body_3_test/linearHydroRestCoef.mat")
         self.assertIsNone(np.testing.assert_allclose(self.body_3.hydroForce['linearHydroRestCoef'], result1))
@@ -174,6 +179,7 @@ class TestBody(unittest.TestCase):
         self.assertIsNone(np.testing.assert_allclose(self.body_3.hydroForce['fAddedMass'], result8))
         result9 = readData("./testData/body_3_test/irkb.mat")
         self.assertIsNone(np.testing.assert_allclose(self.body_3.hydroForce['irkb'], result9))
+        self.assertIsNone(np.testing.assert_allclose(self.body_3.mass, 127000))
         
         w = np.conj(np.transpose(readData("./testData/body_4_test/w.mat"))) 
         waveDir = [0]
@@ -196,6 +202,7 @@ class TestBody(unittest.TestCase):
         self.body_4_1.hydroStiffness = np.zeros((6, 6))
         self.body_4_1.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
         self.body_4_1.linearDamping = np.zeros((6, 6))
+        self.body_4_1.mass = 'equilibrium'
         self.body_4_1.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
         result1 = readData("./testData/body_4_test/body1_linearHydroRestCoef.mat")
         self.assertIsNone(np.testing.assert_allclose(self.body_4_1.hydroForce['linearHydroRestCoef'], result1))
@@ -224,6 +231,7 @@ class TestBody(unittest.TestCase):
         self.body_4_2.hydroStiffness = np.zeros((6, 6))
         self.body_4_2.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
         self.body_4_2.linearDamping = np.zeros((6, 6))
+        self.body_4_2.mass = 'equilibrium'
         self.body_4_2.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
         result1 = readData("./testData/body_4_test/body2_linearHydroRestCoef.mat")
         self.assertIsNone(np.testing.assert_allclose(self.body_4_2.hydroForce['linearHydroRestCoef'], result1))
@@ -267,6 +275,7 @@ class TestBody(unittest.TestCase):
         self.body_5_1.hydroStiffness = np.zeros((6, 6))
         self.body_5_1.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
         self.body_5_1.linearDamping = np.zeros((6, 6))
+        self.body_5_1.mass = 'equilibrium'
         self.body_5_1.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
         result1 = readData("./testData/body_5_test/body1_linearHydroRestCoef.mat")
         self.assertIsNone(np.testing.assert_allclose(self.body_5_1.hydroForce['linearHydroRestCoef'], result1))
@@ -295,6 +304,7 @@ class TestBody(unittest.TestCase):
         self.body_5_2.hydroStiffness = np.zeros((6, 6))
         self.body_5_2.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
         self.body_5_2.linearDamping = np.zeros((6, 6))
+        self.body_5_2.mass = 'equilibrium'
         self.body_5_2.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
         result1 = readData("./testData/body_5_test/body2_linearHydroRestCoef.mat")
         self.assertIsNone(np.testing.assert_allclose(self.body_5_2.hydroForce['linearHydroRestCoef'], result1))
@@ -338,6 +348,7 @@ class TestBody(unittest.TestCase):
         self.body_6_1.hydroStiffness = np.zeros((6, 6))
         self.body_6_1.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
         self.body_6_1.linearDamping = np.zeros((6, 6))
+        self.body_6_1.mass = 'equilibrium'
         self.body_6_1.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
         result1 = readData("./testData/body_6_test/body1_linearHydroRestCoef.mat")
         self.assertIsNone(np.testing.assert_allclose(self.body_6_1.hydroForce['linearHydroRestCoef'], result1))
@@ -366,6 +377,7 @@ class TestBody(unittest.TestCase):
         self.body_6_2.hydroStiffness = np.zeros((6, 6))
         self.body_6_2.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
         self.body_6_2.linearDamping = np.zeros((6, 6))
+        self.body_6_2.mass = 'equilibrium'
         self.body_6_2.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
         result1 = readData("./testData/body_6_test/body2_linearHydroRestCoef.mat")
         self.assertIsNone(np.testing.assert_allclose(self.body_6_2.hydroForce['linearHydroRestCoef'], result1))
@@ -409,6 +421,7 @@ class TestBody(unittest.TestCase):
         self.body_7_1.hydroStiffness = np.zeros((6, 6))
         self.body_7_1.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
         self.body_7_1.linearDamping = np.zeros((6, 6))
+        self.body_7_1.mass = 'equilibrium'
         self.body_7_1.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
         result1 = readData("./testData/body_7_test/body1_linearHydroRestCoef.mat")
         self.assertIsNone(np.testing.assert_allclose(self.body_7_1.hydroForce['linearHydroRestCoef'], result1))
@@ -437,6 +450,7 @@ class TestBody(unittest.TestCase):
         self.body_7_2.hydroStiffness = np.zeros((6, 6))
         self.body_7_2.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
         self.body_7_2.linearDamping = np.zeros((6, 6))
+        self.body_7_2.mass = 'equilibrium'
         self.body_7_2.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
         result1 = readData("./testData/body_7_test/body2_linearHydroRestCoef.mat")
         self.assertIsNone(np.testing.assert_allclose(self.body_7_2.hydroForce['linearHydroRestCoef'], result1))
@@ -480,6 +494,7 @@ class TestBody(unittest.TestCase):
         self.body_8_1.hydroStiffness = np.zeros((6, 6))
         self.body_8_1.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
         self.body_8_1.linearDamping = np.zeros((6, 6))
+        self.body_8_1.mass = 'equilibrium'
         self.body_8_1.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
         result1 = readData("./testData/body_8_test/body1_linearHydroRestCoef.mat")
         self.assertIsNone(np.testing.assert_allclose(self.body_8_1.hydroForce['linearHydroRestCoef'], result1))
@@ -516,6 +531,7 @@ class TestBody(unittest.TestCase):
         self.body_8_2.hydroStiffness = np.zeros((6, 6))
         self.body_8_2.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
         self.body_8_2.linearDamping = np.zeros((6, 6))
+        self.body_8_2.mass = 'equilibrium'
         self.body_8_2.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
         result1 = readData("./testData/body_8_test/body2_linearHydroRestCoef.mat")
         self.assertIsNone(np.testing.assert_allclose(self.body_8_2.hydroForce['linearHydroRestCoef'], result1))
@@ -567,6 +583,7 @@ class TestBody(unittest.TestCase):
         self.body_9_1.hydroStiffness = np.zeros((6, 6))
         self.body_9_1.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
         self.body_9_1.linearDamping = np.zeros((6, 6))
+        self.body_9_1.mass = 'equilibrium'
         self.body_9_1.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
         result1 = readData("./testData/body_9_test/body1_linearHydroRestCoef.mat")
         self.assertIsNone(np.testing.assert_allclose(self.body_9_1.hydroForce['linearHydroRestCoef'], result1))
@@ -603,6 +620,7 @@ class TestBody(unittest.TestCase):
         self.body_9_2.hydroStiffness = np.zeros((6, 6))
         self.body_9_2.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
         self.body_9_2.linearDamping = np.zeros((6, 6))
+        self.body_9_2.mass = 'equilibrium'
         self.body_9_2.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
         result1 = readData("./testData/body_9_test/body2_linearHydroRestCoef.mat")
         self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['linearHydroRestCoef'], result1))
@@ -876,6 +894,28 @@ class TestBody(unittest.TestCase):
         result6 = readData("./testData/body_9_test/body2_D.mat")
         self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['ssRadf']['D'], result6))
        
+    def test_setMassMatrix(self):
+        rho = 1000
+        nlHydro = 0
+        self.body_2.bodyNumber = 1
+        self.body_2.readH5file()
+        self.body_2.mass = 'equilibrium'
+        self.body_2.setMassMatrix(rho,nlHydro)
+        result1 = 'equilibrium'
+        self.assertEqual(self.body_2.massCalcMethod, result1)
+        result2 = 725834
+        self.assertIsNone(np.testing.assert_allclose(self.body_2.mass, result2))
+        
+        rho = 1000
+        nlHydro = 0
+        self.body_2.bodyNumber = 1
+        self.body_2.readH5file()
+        self.body_2.mass = 127000
+        self.body_2.setMassMatrix(rho,nlHydro)
+        result1 = 'user'
+        self.assertEqual(self.body_2.massCalcMethod, result1)
+        result2 = 127000
+        self.assertIsNone(np.testing.assert_allclose(self.body_2.mass, result2))
        
 if __name__ == '__main__':
     unittest.main()

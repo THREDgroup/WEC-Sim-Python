@@ -1,6 +1,6 @@
 %% Simulation Data
 simu = simulationClass();                   % Initialize Simulation Class
-simu.simMechanicsFile = 'RM3.slx';          % Specify Simulink Model File
+simu.simMechanicsFile = 'rm3/RM3.slx';          % Specify Simulink Model File
 simu.rampTime = 100;                        % Wave Ramp Time [s]
 simu.endTime=200;                           % Simulation End Time [s]
 simu.dt = 0.1;                              % Simulation Time-Step [s]
@@ -17,14 +17,14 @@ waves.phaseSeed = 1;
 
 %% Body Data
 % Float
-body(1) = bodyClass('rm3.h5');
-body(1).geometryFile = 'float.stl'; 
+body(1) = bodyClass('rm3/rm3.h5');
+body(1).geometryFile = 'rm3/float.stl'; 
 body(1).mass = 'equilibrium';
 body(1).momOfInertia = [20907301 21306090.66 37085481.11];   
 
 % Spar/Plate
-body(2) = bodyClass('rm3.h5');
-body(2).geometryFile = 'plate.stl';
+body(2) = bodyClass('rm3/rm3.h5');
+body(2).geometryFile = 'rm3/plate.stl';
 body(2).mass = 'equilibrium';
 body(2).momOfInertia = [94419614.57 94407091.24 28542224.82];
 

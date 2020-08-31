@@ -232,6 +232,7 @@ class BodyClass:
         2. Set the wave excitation force    
 
         """
+        self.setMassMatrix(rho,nlHydro)
         if self.dof_gbm > 0:
             #self.linearDamping = [self.linearDamping zeros(1,self.dof-length(self.linearDamping))]
             tmp0 = self.linearDamping
@@ -680,28 +681,30 @@ class BodyClass:
             self.hydroForce['ssRadf']['B'] = Bf
             self.hydroForce['ssRadf']['C'] = Cf*rho
     
-    # def setMassMatrix(obj, rho, nlHydro)
-    #     # Sets mass for the special cases of body at equilibrium or fixed
-    #     # Used by hydroForcePre
-    #     if strcmp(self.mass, 'equilibrium')
-    #         self.massCalcMethod = self.mass
-    #         if nlHydro == 0
-    #             self.mass = self.hydroData.properties.disp_vol * rho
-    #         else
-    #             cg_tmp = self.hydroData.properties.cg
-    #             z = self.bodyGeometry.center(:,3) + cg_tmp(3)
-    #             z(z>0) = 0
-    #             area = self.bodyGeometry.area
-    #             av = [area area area] .* -self.bodyGeometry.norm
-    #             tmp = rho*[z z z].*-av
-    #             self.mass = sum(tmp(:,3))
-            
-    #     elif strcmp(self.mass, 'fixed')
-    #         self.massCalcMethod = self.mass
-    #         self.mass = 999
-    #         self.momOfInertia = [999 999 999]
-    #     else
-    #         self.massCalcMethod = 'user'
+    def setMassMatrix(self, rho, nlHydro):
+        # Sets mass for the special cases of body at equilibrium or fixed
+        # Used by hydroForcePre
+        if self.mass == 'equilibrium':
+            self.massCalcMethod = self.mass
+            if nlHydro == 0:
+                self.mass = self.hydroData['properties']['disp_vol'] * rho
+            else:
+                cg_tmp = self.hydroData['properties']['cg']
+                z = self.bodyGeometry['center'][:,3] + cg_tmp[3]
+                ### need to chek how z work
+                #z(z>0) = 0
+                if z > 0:
+                    z =0
+                area = self.bodyGeometry['area']
+                av = [area, area, area]*-1*self.bodyGeometry['norm']
+                tmp = rho*[z, z, z]*-1*av
+                self.mass = sum(tmp[:,3])
+        elif self.mass == 'fixed':
+            self.massCalcMethod = self.mass
+            self.mass = 999
+            self.momOfInertia = [999, 999, 999]
+        else:
+            self.massCalcMethod = 'user'
         
     
     # def fam = forceAddedMass(obj,acc,B2B)
