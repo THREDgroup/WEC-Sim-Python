@@ -14,7 +14,7 @@
 - [ ] Open AI Gym for simulation
 
 ## Major changes from original WEC-Sim
-1. Does not support Simulink.
+1. Do not support Simulink.
 3. A seperate Paraview class is made in the objects directory.
 4. Modified some methods and file structures for faster computation but the original method has been tested and left in the comment.
 
