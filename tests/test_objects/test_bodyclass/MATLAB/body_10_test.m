@@ -1,123 +1,117 @@
 clc,clear all; close all;
 %% Simulation Data
 simu = simulationClass();               
-simu.simMechanicsFile = 'rm3/RM3.slx';      
-simu.solver = 'ode4';                   
-simu.explorer='off';                     
+% simu.simMechanicsFile = 'ellipsoid/ode4/Regular/ellipsoid.slx';   
+simu.simMechanicsFile = 'ellipsoid/ellipsoid.slx';   
+simu.mode = 'normal';                   % Specify Simulation Mode ('normal','accelerator','rapid-accelerator')
+simu.explorer='off';                     % Turn SimMechanics Explorer (on/off)
 simu.startTime = 0;                     
-simu.rampTime = 100;                       
-simu.endTime=400;                       
-simu.dt = 0.1; 							
-simu.b2b = 1;                       % Turn B2B interactions 'on'   
-simu.ssCalc = 1;
+simu.rampTime = 50;                        
+simu.endTime=150;                       
+simu.dt = 0.05;                         
+simu.rho=1025;                                                                                                           
+simu.nlHydro = 2;                       % Non-linear hydro on/off
 
 %% Wave Information 
-% Regular Waves  
-waves = waveClass('regularCIC');    % Regular CIC           
-waves.H = 2.5;                          
-waves.T = 8;                            
+% Regular Waves 
+waves = waveClass('regular');                 
+waves.H = 4;                            
+waves.T = 6;                
 
 %% Body Data
-% Float
-body(1) = bodyClass('rm3/rm3.h5');      
-body(1).geometryFile = 'rm3/float.stl';   
-body(1).mass = 'equilibrium';                   
-body(1).momOfInertia = [20907301 21306090.66 37085481.11];       
+body(1) = bodyClass('ellipsoid/ellipsoid.h5');
+body(1).mass = 'equilibrium';           
+body(1).momOfInertia = ...              
+    [1.375264e6 1.375264e6 1.341721e6];      
+body(1).geometryFile = 'ellipsoid/elipsoid.stl' ;    
+body(1).viscDrag.cd=[1 0 1 0 1 0];
+body(1).viscDrag.characteristicArea=[25 0 pi*5^2 0 pi*5^5 0];
 
-% Spar/Plate
-body(2) = bodyClass('rm3/rm3.h5'); 
-body(2).mass = 'equilibrium';                   
-body(2).momOfInertia = [94419614.57 94407091.24 28542224.82];
-body(2).geometryFile = 'rm3/plate.stl'; 
 
 %%
+
+
 body(1).bodyNumber = 1;
-body(1).bodyTotal = 2;
+% body(1).bodyTotal = 1;
 body(1).readH5File();
-body(2).bodyTotal = 2;
-body(2).bodyNumber = 2;
-body(2).readH5File();
+
 simu.setupSim;
 waves.waveSetup(body(1).hydroData.simulation_parameters.w, body(1).hydroData.simulation_parameters.water_depth, simu.rampTime, simu.dt, simu.maxIt, simu.g, simu.rho,  simu.endTime);
 
+
+
 kk = 1;
+body(kk).bodyGeo(body(kk).geometryFile)
 body(kk).hydroForcePre(waves.w,waves.waveDir,simu.CIkt,simu.CTTime,waves.numFreq,simu.dt,...
     simu.rho,simu.g,waves.type,waves.waveAmpTime,kk,simu.numWecBodies,simu.ssCalc,simu.nlHydro,simu.b2b);
-kk = 2;
-body(kk).hydroForcePre(waves.w,waves.waveDir,simu.CIkt,simu.CTTime,waves.numFreq,simu.dt,...
-    simu.rho,simu.g,waves.type,waves.waveAmpTime,kk,simu.numWecBodies,simu.ssCalc,simu.nlHydro,simu.b2b);
+
 
 %%
-body1_linearHydroRestCoef = body(1).hydroForce.linearHydroRestCoef 
-body1_visDrag = body(1).hydroForce.visDrag
-body1_linearDamping = body(1).hydroForce.linearDamping
-body1_userDefinedFe = body(1).hydroForce.userDefinedFe
-body1_re = body(1).hydroForce.fExt.re
-body1_im = body(1).hydroForce.fExt.im
-body1_md = body(1).hydroForce.fExt.md
-body1_fAddedMass = body(1).hydroForce.fAddedMass
-body1_fDamping = body(1).hydroForce.fDamping
-body1_irkb = body(1).hydroForce.irkb
-body1_A = body(1).hydroForce.ssRadf.A
-body1_B = body(1).hydroForce.ssRadf.B
-body1_C = body(1).hydroForce.ssRadf.C
-body1_D = body(1).hydroForce.ssRadf.D
-% body1_totDOF = body(1).hydroForce.totDOF
-
-
-body2_linearHydroRestCoef = body(2).hydroForce.linearHydroRestCoef 
-body2_visDrag = body(2).hydroForce.visDrag
-body2_linearDamping = body(2).hydroForce.linearDamping
-body2_userDefinedFe = body(2).hydroForce.userDefinedFe
-body2_re = body(2).hydroForce.fExt.re
-body2_im = body(2).hydroForce.fExt.im
-body2_md = body(2).hydroForce.fExt.md
-body2_fAddedMass = body(2).hydroForce.fAddedMass
-body2_fDamping = body(2).hydroForce.fDamping
-body2_irkb = body(2).hydroForce.irkb
-body2_A = body(2).hydroForce.ssRadf.A
-body2_B = body(2).hydroForce.ssRadf.B
-body2_C = body(2).hydroForce.ssRadf.C
-body2_D = body(2).hydroForce.ssRadf.D
-% body2_totDOF = body(2).hydroForce.totDOF
+body10_norm = body(1).bodyGeometry.norm
+body10_area = body(1).bodyGeometry.area
+body10_center = body(1).bodyGeometry.center
+body10_vertex = body(1).bodyGeometry.vertex
+body10_face = body(1).bodyGeometry.face
+body10_numVertex = body(1).bodyGeometry.numVertex
+body10_numFace = body(1).bodyGeometry.numFace
+body10_linearHydroRestCoef = body(1).hydroForce.linearHydroRestCoef 
+body10_visDrag = body(1).hydroForce.visDrag
+body10_linearDamping = body(1).hydroForce.linearDamping
+body10_userDefinedFe = body(1).hydroForce.userDefinedFe
+body10_re = body(1).hydroForce.fExt.re
+body10_im = body(1).hydroForce.fExt.im
+body10_md = body(1).hydroForce.fExt.md
+body10_fAddedMass = body(1).hydroForce.fAddedMass
+body10_fDamping = body(1).hydroForce.fDamping
+% body1_irkb = body(1).hydroForce.irkb
+% body1_A = body(1).hydroForce.ssRadf.A
+% body1_B = body(1).hydroForce.ssRadf.B
+% body1_C = body(1).hydroForce.ssRadf.C
+% body1_D = body(1).hydroForce.ssRadf.D
+body10_totDOF = body(1).hydroForce.totDOF
 
 CTTime = simu.CTTime
 w = waves.w
 waveAmpTime = waves.waveAmpTime
 % 
-% mkdir body_9_test
-% save body_9_test/body1_linearHydroRestCoef.mat  body1_linearHydroRestCoef
-% save body_9_test/body1_visDrag.mat  body1_visDrag 
-% save body_9_test/body1_linearDamping.mat body1_linearDamping
-% save body_9_test/body1_userDefinedFe.mat  body1_userDefinedFe 
-% save body_9_test/body1_re.mat  body1_re
-% save body_9_test/body1_im.mat  body1_im 
-% save body_9_test/body1_md.mat  body1_md
-% save body_9_test/body1_fAddedMass.mat body1_fAddedMass
-% save body_9_test/body1_fDamping.mat  body1_fDamping
-% save body_9_test/body1_irkb.mat body1_irkb
-% save body_9_test/body1_A.mat body1_A
-% save body_9_test/body1_B.mat body1_B
-% save body_9_test/body1_C.mat body1_C
-% save body_9_test/body1_D.mat body1_D
-% % save body_9_test/body1_totDOF.mat  body1_totDOF
+mkdir body_10_test
+save body_10_test/body1_norm.mat body10_norm
+save body_10_test/body1_area.mat body10_area
+save body_10_test/body1_center.mat body10_center
+save body_10_test/body1_vertex.mat body10_vertex
+save body_10_test/body1_face.mat body10_face
+save body_10_test/body1_linearHydroRestCoef.mat  body10_linearHydroRestCoef
+save body_10_test/body1_visDrag.mat  body10_visDrag 
+save body_10_test/body1_linearDamping.mat body10_linearDamping
+save body_10_test/body1_userDefinedFe.mat  body10_userDefinedFe 
+save body_10_test/body1_re.mat  body10_re
+save body_10_test/body1_im.mat  body10_im 
+save body_10_test/body1_md.mat  body10_md
+save body_10_test/body1_fAddedMass.mat body10_fAddedMass
+save body_10_test/body1_fDamping.mat  body10_fDamping
+% save body_10_test/body1_irkb.mat body1_irkb
+% save body_10_test/body1_A.mat body1_A
+% save body_10_test/body1_B.mat body1_B
+% save body_10_test/body1_C.mat body1_C
+% save body_10_test/body1_D.mat body1_D
+save body_10_test/body1_totDOF.mat  body10_totDOF
 % 
-% save body_9_test/body2_linearHydroRestCoef.mat  body2_linearHydroRestCoef
-% save body_9_test/body2_visDrag.mat  body2_visDrag 
-% save body_9_test/body2_linearDamping.mat body2_linearDamping
-% save body_9_test/body2_userDefinedFe.mat  body2_userDefinedFe 
-% save body_9_test/body2_re.mat  body2_re
-% save body_9_test/body2_im.mat  body2_im 
-% save body_9_test/body2_md.mat  body2_md 
-% save body_9_test/body2_fAddedMass.mat body2_fAddedMass
-% save body_9_test/body2_fDamping.mat  body2_fDamping
-% save body_9_test/body2_irkb.mat body2_irkb
-% save body_9_test/body2_A.mat body2_A
-% save body_9_test/body2_B.mat body2_B
-% save body_9_test/body2_C.mat body2_C
-% save body_9_test/body2_D.mat body2_D
-% % save body_9_test/body2_totDOF.mat  body2_totDOF
+% save body_10_test/body2_linearHydroRestCoef.mat  body2_linearHydroRestCoef
+% save body_10_test/body2_visDrag.mat  body2_visDrag 
+% save body_10_test/body2_linearDamping.mat body2_linearDamping
+% save body_10_test/body2_userDefinedFe.mat  body2_userDefinedFe 
+% save body_10_test/body2_re.mat  body2_re
+% save body_10_test/body2_im.mat  body2_im 
+% save body_10_test/body2_md.mat  body2_md 
+% save body_10_test/body2_fAddedMass.mat body2_fAddedMass
+% save body_10_test/body2_fDamping.mat  body2_fDamping
+% save body_10_test/body2_irkb.mat body2_irkb
+% save body_10_test/body2_A.mat body2_A
+% save body_10_test/body2_B.mat body2_B
+% save body_10_test/body2_C.mat body2_C
+% save body_10_test/body2_D.mat body2_D
+% % save body_10_test/body2_totDOF.mat  body2_totDOF
 % 
-% save body_9_test/CTTime.mat CTTime
-% save body_9_test/w.mat w
-% save body_9_test/waveAmpTime.mat waveAmpTime
+save body_10_test/CTTime.mat CTTime
+save body_10_test/w.mat w
+save body_10_test/waveAmpTime.mat waveAmpTime

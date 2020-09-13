@@ -1,7 +1,6 @@
 %% Simulation Data
 simu = simulationClass();               
-% simu.simMechanicsFile = 'ellipsoid/ode4/Regular/ellipsoid.slx';   
-simu.simMechanicsFile = 'ellipsoid/ellipsoid.slx';   
+simu.simMechanicsFile = 'ellipsoid.slx';   
 simu.mode = 'normal';                   % Specify Simulation Mode ('normal','accelerator','rapid-accelerator')
 simu.explorer='off';                     % Turn SimMechanics Explorer (on/off)
 simu.startTime = 0;                     
@@ -18,11 +17,11 @@ waves.H = 4;
 waves.T = 6;   
 
 %% Body Data
-body(1) = bodyClass('ellipsoid/ellipsoid.h5');
+body(1) = bodyClass('../../hydroData/ellipsoid.h5');
 body(1).mass = 'equilibrium';           
 body(1).momOfInertia = ...              
     [1.375264e6 1.375264e6 1.341721e6];      
-body(1).geometryFile = 'ellipsoid/elipsoid.stl' ;    
+body(1).geometryFile = '../../geometry/elipsoid.stl' ;    
 body(1).viscDrag.cd=[1 0 1 0 1 0];
 body(1).viscDrag.characteristicArea=[25 0 pi*5^2 0 pi*5^5 0];
 

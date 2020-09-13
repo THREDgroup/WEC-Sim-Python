@@ -12,6 +12,7 @@ import h5py
 import numpy as np
 import numpy.matlib 
 import warnings
+import trimesh
 
 from numpy.linalg import inv
 from scipy import interpolate
@@ -125,6 +126,7 @@ class BodyClass:
         self.lenJ              = []                                             # Matrices length. 6 for no body-to-body interactions. 6*numBodies if body-to-body interactions.
 
     def __init__(self,filename):
+        self.bodyGeometryFileProperties()
         self.internalProperties(filename)
         self.hdf5FileProperties()
         self.meanDriftForce = 0
@@ -380,32 +382,37 @@ class BodyClass:
     #     fprintf('\tBody CG                          (m) = [#G,#G,#G]\n',self.hydroData.properties.cg)
     #     fprintf('\tBody Mass                       (kg) = #G \n',self.mass)
     #     fprintf('\tBody Diagonal MOI              (kgm2)= [#G,#G,#G]\n',self.momOfInertia)
-     
-    # def bodyGeo(obj,fname):
-    #     # Reads mesh file and calculates areas and centroids
-    #     try
-    #         [self.bodyGeometry.vertex, self.bodyGeometry.face, self.bodyGeometry.norm] = import_stl_fast(fname,1,1)
-    #     catch
-    #         [self.bodyGeometry.vertex, self.bodyGeometry.face, self.bodyGeometry.norm] = import_stl_fast(fname,1,2)
+    
+    
+    def bodyGeo(self,fname):
+        # Reads mesh file and calculates areas and centroids
+        your_mesh = trimesh.load_mesh(fname)
+        v = your_mesh.triangles.reshape(int(np.size(your_mesh.triangles)/3),3)
+        [vertex,faces] = np.unique(v,return_inverse=True,axis=0)
+        face = faces.reshape(int(np.size(faces)/3),3)+1
+        self.bodyGeometry['vertex'] = vertex
+        self.bodyGeometry['numVertex'] = np.size(vertex,0)
+        self.bodyGeometry['face'] = face
+        self.bodyGeometry['numFace'] = np.size(face,0)
+        self.bodyGeometry['norm'] = your_mesh.face_normals
+        self.bodyGeometry['center'] = your_mesh.triangles_center
+        self.bodyGeometry['area'] = your_mesh.area_faces        
         
-    #     self.bodyGeometry.numFace = length(self.bodyGeometry.face)
-    #     self.bodyGeometry.numVertex = length(self.bodyGeometry.vertex)
-    #     self.checkStl()
-    #     self.triArea()
-    #     self.triCenter()
-    
-    
-    # def triArea(obj):
-    #     # Function to calculate the area of a triangle
-    #     points = self.bodyGeometry.vertex
-    #     faces = self.bodyGeometry.face
-    #     v1 = points(faces(:,3),:)-points(faces(:,1),:)
-    #     v2 = points(faces(:,2),:)-points(faces(:,1),:)
-    #     av_tmp =  1/2.*(cross(v1,v2))
-    #     area_mag = sqrt(av_tmp(:,1).^2 + av_tmp(:,2).^2 + av_tmp(:,3).^2)
-    #     self.bodyGeometry.area = area_mag
-    
-    
+    """
+    # function bodyGeo(obj,fname)
+    #     % Reads mesh file and calculates areas and centroids
+    #     try
+    #         [obj.bodyGeometry.vertex, obj.bodyGeometry.face, obj.bodyGeometry.norm] = import_stl_fast(fname,1,1);
+    #     catch
+    #         [obj.bodyGeometry.vertex, obj.bodyGeometry.face, obj.bodyGeometry.norm] = import_stl_fast(fname,1,2);
+    #     end
+    #     obj.bodyGeometry.numFace = length(obj.bodyGeometry.face);
+    #     obj.bodyGeometry.numVertex = length(obj.bodyGeometry.vertex);
+    #     obj.checkStl();
+    #     obj.triArea();
+    #     obj.triCenter();
+
+        
     # def checkStl(obj):
     #     # Function to check STL file
     #     tnorm = self.bodyGeometry.norm
@@ -422,7 +429,6 @@ class BodyClass:
     #     if check>1.01 || check<0.99
     #         error(['length of normal vectors in ' self.geometryFile ' is not equal to one.'])
         
-    
     
     # def triCenter(obj):
     #     #Function to caculate the center coordinate of a triangle
@@ -445,7 +451,7 @@ class BodyClass:
     #     hold on
     #     trimesh(tri,p(:,1),p(:,2),p(:,3))
     #     quiver3(c(:,1),c(:,2),c(:,3),n(:,1),n(:,2),n(:,3))
-    
+    """
     
     # def checkinputs(obj):
     #     # Checks the user inputs
@@ -690,7 +696,7 @@ class BodyClass:
                 self.mass = self.hydroData['properties']['disp_vol'] * rho
             else:
                 cg_tmp = self.hydroData['properties']['cg']
-                z = self.bodyGeometry['center'][:,3] + cg_tmp[3]
+                z = self.bodyGeometry['center'][:,:,2] + cg_tmp[2]
                 ### need to chek how z work
                 #z(z>0) = 0
                 if z > 0:

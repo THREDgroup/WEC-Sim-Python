@@ -47,7 +47,7 @@ class TestBody(unittest.TestCase):
         self.body_8_2 = BodyClass('rm3.h5') #regularCIC B2B_Case5:b2b = 0,ssCalc = 1
         self.body_9_1 = BodyClass('rm3.h5') #regularcIC B2B_Case6:b2b = 1,ssCalc = 1
         self.body_9_2 = BodyClass('rm3.h5') #regularcIC B2B_Case6:b2b = 1,ssCalc = 1
-        #self.body_10_1 = BodyClass('rm3.h5') #regular nlhydro
+        self.body_10_1 = BodyClass('ellipsoid.h5') #regular nlHydro = 2
         
     def tearDown(self):
         print("tearDown\n")
@@ -651,6 +651,60 @@ class TestBody(unittest.TestCase):
         result14 = readData("./testData/body_9_test/body2_D.mat")
         self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['ssRadf']['D'], result14))
         
+        w = np.conj(np.transpose(readData("./testData/body_10_test/w.mat"))) 
+        waveDir = [0]
+        CIkt = 1201
+        CTTime = readData("./testData/body_10_test/CTTime.mat")[0]
+        dt = 0.05
+        rho = 1025
+        g = 9.81
+        waveType = 'regular'
+        waveAmpTime = np.conj(np.transpose(readData("./testData/body_10_test/waveAmpTime.mat"))) 
+        iBod = 1 #body number
+        numBod = [] #later change it to 2 to check
+        ssCalc = 0
+        nlHydro = 2
+        B2B = 0
+        numFreq = []
+        self.body_10_1.bodyNumber = 1
+        self.body_10_1.bodyTotal = [1]
+        self.body_10_1.readH5file()
+        self.body_10_1.hydroStiffness = np.zeros((6, 6))
+        self.body_10_1.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
+        self.body_10_1.linearDamping = np.zeros((6, 6))
+        self.body_10_1.mass = 'equilibrium'
+        self.body_10_1.bodyGeo("./testData/body_10_test/elipsoid.stl")
+        self.body_10_1.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
+        result1 = readData("./testData/body_10_test/body10_linearHydroRestCoef.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_10_1.hydroForce['linearHydroRestCoef'], result1))
+        result2 = readData("./testData/body_10_test/body10_visDrag.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_10_1.hydroForce['visDrag'], result2))
+        result3 = readData("./testData/body_10_test/body10_linearDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_10_1.hydroForce['linearDamping'], result3))
+        result4 = readData("./testData/body_10_test/body10_userDefinedFe.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_10_1.hydroForce['userDefinedFe'], result4)) 
+        result5 = readData("./testData/body_10_test/body10_re.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_10_1.hydroForce['fExt']['re'], result5))
+        result6 = readData("./testData/body_10_test/body10_im.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_10_1.hydroForce['fExt']['im'], result6))
+        result7 = readData("./testData/body_10_test/body10_md.mat")[0]
+        self.assertIsNone(np.testing.assert_allclose(self.body_10_1.hydroForce['fExt']['md'], result7))
+        result8 = readData("./testData/body_10_test/body10_fAddedMass.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_10_1.hydroForce['fAddedMass'], result8))
+        result9 = readData("./testData/body_10_test/body10_fDamping.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_10_1.hydroForce['fDamping'], result9))
+        result10 = readData("./testData/body_10_test/body10_vertex.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_10_1.bodyGeometry['vertex'], result10))
+        result11 = readData("./testData/body_10_test/body10_face.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_10_1.bodyGeometry['face'], result11))
+        result12 = readData("./testData/body_10_test/body10_norm.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_10_1.bodyGeometry['norm'], result12))
+        result13 = readData("./testData/body_10_test/body10_area.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_10_1.bodyGeometry['area'], result13))
+        result14 = readData("./testData/body_10_test/body10_center.mat")
+        self.assertIsNone(np.testing.assert_allclose(self.body_10_1.bodyGeometry['center'], result14))
+        self.assertEqual(self.body_10_1.bodyGeometry['numVertex'], 1442)
+        self.assertEqual(self.body_10_1.bodyGeometry['numFace'], 2880)
         
     def test_regExcitation(self):
         w = 0.785398163397448

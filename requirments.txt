@@ -1,5 +1,6 @@
 # Written in Python 3.6.10
-# Tested on OS: Ubuntu 20.04
+# Tested on OS: Ubuntu 20.04 and Windows 10
+
 
 # to run h5 file, you need to install lfs
 # clone repository and get update
@@ -7,3 +8,7 @@
 git lfs install
 git clone https://github.com/THREDgroup/WEC-Sim-Python.git
 git pull
+
+# to run nl-hydro you need to install trimesh 3.8.6
+
+pip install trimesh
