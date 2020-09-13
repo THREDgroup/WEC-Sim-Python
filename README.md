@@ -2,7 +2,7 @@
 **WEC-Sim-Python** is the Python version of the [WEC-Sim (Wave Energy Converter SIMulator)](https://github.com/WEC-Sim/WEC-Sim.git) which was originally developed in MATLAB/SIMULINK. 
 
 ## Goal of WEC-Sim-Python
-**WEC-Sim-Python** aims to help researcher, start up companies, and enthusiast without access to MATLAB to use the open source code provided from NREL and Sandia lab. Also with growing research in the machine learning, **WEC-Sim-Python** could provid easier transition for those who learnd machine learning in Python.
+**WEC-Sim-Python** aims to help researchers, start up companies, and enthusiasts without access to MATLAB to use the open source code provided from NREL and Sandia lab. Also with growing research in the machine learning, **WEC-Sim-Python** could provid easier transition for those who learnd machine learning in Python.
 
 ## Build Status
 **WARNING: WEC-Sim-Python has not been completed.** Estimate date of completion: **February, 2021**
