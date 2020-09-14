@@ -22,24 +22,25 @@ Wave Class creates wave and its related varaibles.
 # Body Class
 To be updated.
 
-## Note
+# Note
+
 # BEM Solver Guide
 ## Procedure (WAMIT):
 To be updated.
 
 ## Procedure (NEMOH-Windows):
 1. Download NEMOH file from 
-2. create run.bat file on working directory
+2. Create run.bat file on working directory
 3. To be updated.
 
-## Procedure (NEMOH-Linux,MAC):
+## Procedure (NEMOH-Linux, MAC):
 1. Download and extract NEMOH file
 2. Go to the NEMOH directory and run make file
 3. Copy all files located in the tutorial directory
 4. Go to the bin directory and paste files
-5. run preProc
-6. run solver
-7. run postProc
+5. Run preProc
+6. Run solver
+7. Run postProc
 8. Move FKForce.tac and ..... to BEMIO/data directory
 9. To be updated
 
