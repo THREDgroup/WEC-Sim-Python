@@ -396,7 +396,7 @@ class BodyClass:
         self.bodyGeometry['numFace'] = np.size(face,0)
         self.bodyGeometry['norm'] = your_mesh.face_normals
         self.bodyGeometry['center'] = your_mesh.triangles_center
-        self.bodyGeometry['area'] = your_mesh.area_faces        
+        self.bodyGeometry['area'] = np.transpose([your_mesh.area_faces])        
         
     """
     # function bodyGeo(obj,fname)
@@ -695,16 +695,13 @@ class BodyClass:
             if nlHydro == 0:
                 self.mass = self.hydroData['properties']['disp_vol'] * rho
             else:
-                cg_tmp = self.hydroData['properties']['cg']
-                z = self.bodyGeometry['center'][:,:,2] + cg_tmp[2]
-                ### need to chek how z work
-                #z(z>0) = 0
-                if z > 0:
-                    z =0
-                area = self.bodyGeometry['area']
-                av = [area, area, area]*-1*self.bodyGeometry['norm']
-                tmp = rho*[z, z, z]*-1*av
-                self.mass = sum(tmp[:,3])
+                cg_tmp = self.hydroData['properties']['cg'][0]
+                z = np.conj(np.transpose(np.array(self.bodyGeometry['center'])))[2] + cg_tmp[2]
+                zr = [0 if x > 0 else x for x in z]
+                area = np.conj(np.transpose(self.bodyGeometry['area']))[0]
+                av = np.array([area,area,area])*-1*np.conj(np.transpose(self.bodyGeometry['norm']))
+                tmp = rho*np.array([zr, zr, zr])*-1*av
+                self.mass = sum(tmp[2])
         elif self.mass == 'fixed':
             self.massCalcMethod = self.mass
             self.mass = 999

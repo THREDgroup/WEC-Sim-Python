@@ -670,7 +670,9 @@ class TestBody(unittest.TestCase):
         self.body_10_1.bodyTotal = [1]
         self.body_10_1.readH5file()
         self.body_10_1.hydroStiffness = np.zeros((6, 6))
-        self.body_10_1.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
+        self.body_10_1.viscDrag = {'Drag':np.zeros((6, 6)),
+                                   'cd':np.array([1,0,1,0,1,0]),
+                                   'characteristicArea':np.array([25,0,np.pi*5**2,0,np.pi*5**5,0])}
         self.body_10_1.linearDamping = np.zeros((6, 6))
         self.body_10_1.mass = 'equilibrium'
         self.body_10_1.bodyGeo("./testData/body_10_test/elipsoid.stl")
@@ -970,6 +972,16 @@ class TestBody(unittest.TestCase):
         self.assertEqual(self.body_2.massCalcMethod, result1)
         result2 = 127000
         self.assertIsNone(np.testing.assert_allclose(self.body_2.mass, result2))
+        
+        rho = 1025
+        nlHydro = 2
+        self.body_10_1.bodyNumber = 1
+        self.body_10_1.readH5file()
+        self.body_10_1.mass = 'equilibrium'
+        self.body_10_1.bodyGeo("./testData/body_10_test/elipsoid.stl")
+        self.body_10_1.setMassMatrix(rho,nlHydro)
+        result1 = 133376.066729747
+        self.assertIsNone(np.testing.assert_allclose(self.body_10_1.mass, result1))
        
 if __name__ == '__main__':
     unittest.main()

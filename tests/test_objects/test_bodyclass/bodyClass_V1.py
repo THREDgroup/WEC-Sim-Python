@@ -12,6 +12,7 @@ import h5py
 import numpy as np
 import numpy.matlib 
 import warnings
+import trimesh
 
 from numpy.linalg import inv
 from scipy import interpolate
@@ -125,6 +126,7 @@ class BodyClass:
         self.lenJ              = []                                             # Matrices length. 6 for no body-to-body interactions. 6*numBodies if body-to-body interactions.
 
     def __init__(self,filename):
+        self.bodyGeometryFileProperties()
         self.internalProperties(filename)
         self.hdf5FileProperties()
         self.meanDriftForce = 0
@@ -232,6 +234,7 @@ class BodyClass:
         2. Set the wave excitation force    
 
         """
+        self.setMassMatrix(rho,nlHydro)
         if self.dof_gbm > 0:
             #self.linearDamping = [self.linearDamping zeros(1,self.dof-length(self.linearDamping))]
             tmp0 = self.linearDamping
@@ -379,32 +382,37 @@ class BodyClass:
     #     fprintf('\tBody CG                          (m) = [#G,#G,#G]\n',self.hydroData.properties.cg)
     #     fprintf('\tBody Mass                       (kg) = #G \n',self.mass)
     #     fprintf('\tBody Diagonal MOI              (kgm2)= [#G,#G,#G]\n',self.momOfInertia)
-     
-    # def bodyGeo(obj,fname):
-    #     # Reads mesh file and calculates areas and centroids
-    #     try
-    #         [self.bodyGeometry.vertex, self.bodyGeometry.face, self.bodyGeometry.norm] = import_stl_fast(fname,1,1)
-    #     catch
-    #         [self.bodyGeometry.vertex, self.bodyGeometry.face, self.bodyGeometry.norm] = import_stl_fast(fname,1,2)
+    
+    
+    def bodyGeo(self,fname):
+        # Reads mesh file and calculates areas and centroids
+        your_mesh = trimesh.load_mesh(fname)
+        v = your_mesh.triangles.reshape(int(np.size(your_mesh.triangles)/3),3)
+        [vertex,faces] = np.unique(v,return_inverse=True,axis=0)
+        face = faces.reshape(int(np.size(faces)/3),3)+1
+        self.bodyGeometry['vertex'] = vertex
+        self.bodyGeometry['numVertex'] = np.size(vertex,0)
+        self.bodyGeometry['face'] = face
+        self.bodyGeometry['numFace'] = np.size(face,0)
+        self.bodyGeometry['norm'] = your_mesh.face_normals
+        self.bodyGeometry['center'] = your_mesh.triangles_center
+        self.bodyGeometry['area'] = np.transpose([your_mesh.area_faces])        
         
-    #     self.bodyGeometry.numFace = length(self.bodyGeometry.face)
-    #     self.bodyGeometry.numVertex = length(self.bodyGeometry.vertex)
-    #     self.checkStl()
-    #     self.triArea()
-    #     self.triCenter()
-    
-    
-    # def triArea(obj):
-    #     # Function to calculate the area of a triangle
-    #     points = self.bodyGeometry.vertex
-    #     faces = self.bodyGeometry.face
-    #     v1 = points(faces(:,3),:)-points(faces(:,1),:)
-    #     v2 = points(faces(:,2),:)-points(faces(:,1),:)
-    #     av_tmp =  1/2.*(cross(v1,v2))
-    #     area_mag = sqrt(av_tmp(:,1).^2 + av_tmp(:,2).^2 + av_tmp(:,3).^2)
-    #     self.bodyGeometry.area = area_mag
-    
-    
+    """
+    # function bodyGeo(obj,fname)
+    #     % Reads mesh file and calculates areas and centroids
+    #     try
+    #         [obj.bodyGeometry.vertex, obj.bodyGeometry.face, obj.bodyGeometry.norm] = import_stl_fast(fname,1,1);
+    #     catch
+    #         [obj.bodyGeometry.vertex, obj.bodyGeometry.face, obj.bodyGeometry.norm] = import_stl_fast(fname,1,2);
+    #     end
+    #     obj.bodyGeometry.numFace = length(obj.bodyGeometry.face);
+    #     obj.bodyGeometry.numVertex = length(obj.bodyGeometry.vertex);
+    #     obj.checkStl();
+    #     obj.triArea();
+    #     obj.triCenter();
+
+        
     # def checkStl(obj):
     #     # Function to check STL file
     #     tnorm = self.bodyGeometry.norm
@@ -421,7 +429,6 @@ class BodyClass:
     #     if check>1.01 || check<0.99
     #         error(['length of normal vectors in ' self.geometryFile ' is not equal to one.'])
         
-    
     
     # def triCenter(obj):
     #     #Function to caculate the center coordinate of a triangle
@@ -444,7 +451,7 @@ class BodyClass:
     #     hold on
     #     trimesh(tri,p(:,1),p(:,2),p(:,3))
     #     quiver3(c(:,1),c(:,2),c(:,3),n(:,1),n(:,2),n(:,3))
-    
+    """
     
     # def checkinputs(obj):
     #     # Checks the user inputs
@@ -632,7 +639,7 @@ class BodyClass:
             if B2B == 1:
                 for ii in range(nDOF):
                     for jj in range(LDOF):
-                        arraySize = self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['it'][ii,jj]
+                        arraySize = int(self.hydroData['hydro_coeffs']['radiation_damping']['state_space']['it'][ii,jj])
                         if ii == 0 and jj == 0: # Begin construction of combined state, input, and output matrices
                             Af = np.zeros((arraySize,arraySize))
                             Bf = np.zeros((arraySize,LDOF))
@@ -680,28 +687,27 @@ class BodyClass:
             self.hydroForce['ssRadf']['B'] = Bf
             self.hydroForce['ssRadf']['C'] = Cf*rho
     
-    # def setMassMatrix(obj, rho, nlHydro)
-    #     # Sets mass for the special cases of body at equilibrium or fixed
-    #     # Used by hydroForcePre
-    #     if strcmp(self.mass, 'equilibrium')
-    #         self.massCalcMethod = self.mass
-    #         if nlHydro == 0
-    #             self.mass = self.hydroData.properties.disp_vol * rho
-    #         else
-    #             cg_tmp = self.hydroData.properties.cg
-    #             z = self.bodyGeometry.center(:,3) + cg_tmp(3)
-    #             z(z>0) = 0
-    #             area = self.bodyGeometry.area
-    #             av = [area area area] .* -self.bodyGeometry.norm
-    #             tmp = rho*[z z z].*-av
-    #             self.mass = sum(tmp(:,3))
-            
-    #     elif strcmp(self.mass, 'fixed')
-    #         self.massCalcMethod = self.mass
-    #         self.mass = 999
-    #         self.momOfInertia = [999 999 999]
-    #     else
-    #         self.massCalcMethod = 'user'
+    def setMassMatrix(self, rho, nlHydro):
+        # Sets mass for the special cases of body at equilibrium or fixed
+        # Used by hydroForcePre
+        if self.mass == 'equilibrium':
+            self.massCalcMethod = self.mass
+            if nlHydro == 0:
+                self.mass = self.hydroData['properties']['disp_vol'] * rho
+            else:
+                cg_tmp = self.hydroData['properties']['cg'][0]
+                z = np.conj(np.transpose(np.array(self.bodyGeometry['center'])))[2] + cg_tmp[2]
+                zr = [0 if x > 0 else x for x in z]
+                area = np.conj(np.transpose(self.bodyGeometry['area']))[0]
+                av = np.array([area,area,area])*-1*np.conj(np.transpose(self.bodyGeometry['norm']))
+                tmp = rho*np.array([zr, zr, zr])*-1*av
+                self.mass = sum(tmp[2])
+        elif self.mass == 'fixed':
+            self.massCalcMethod = self.mass
+            self.mass = 999
+            self.momOfInertia = [999, 999, 999]
+        else:
+            self.massCalcMethod = 'user'
         
     
     # def fam = forceAddedMass(obj,acc,B2B)

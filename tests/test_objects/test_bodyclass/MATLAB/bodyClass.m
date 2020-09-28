@@ -20,6 +20,7 @@ classdef bodyClass<handle
     end
     
     properties (SetAccess = 'public', GetAccess = 'public') %input file
+        answer = []
         name              = []                                                  % Body name. For WEC bodies this is given in the h5 file.
         mass              = []                                                  % Mass in kg or specify 'equilibrium' to have mass= dis vol * density
         momOfInertia      = []                                                  % Moment of inertia [Ixx Iyy Izz] in kg*m^2
@@ -597,6 +598,7 @@ classdef bodyClass<handle
                 else
                     cg_tmp = obj.hydroData.properties.cg;
                     z = obj.bodyGeometry.center(:,3) + cg_tmp(3);
+                    obj.answer= z;
                     z(z>0) = 0;
                     area = obj.bodyGeometry.area;
                     av = [area area area] .* -obj.bodyGeometry.norm;
