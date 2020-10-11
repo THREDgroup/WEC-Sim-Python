@@ -16,6 +16,7 @@ import trimesh
 
 from numpy.linalg import inv
 from scipy import interpolate
+from copy import copy
 
 class BodyClass:
     def hdf5FileProperties(self):#hdf5 file properties
@@ -56,7 +57,6 @@ class BodyClass:
                                'stiffness':[],
                                'damping':[]}}                                                  
 
-
     def inputFileProperties(self):#input file properties
         self.name              = []                                            # Body name. For WEC bodies this is given in the h5 file.
         self.mass              = []                                            # Mass in kg or specify 'equilibrium' to have mass= dis vol * density
@@ -93,7 +93,7 @@ class BodyClass:
         self.flexHydroBody     = 0                                             # Flag for flexible body. 
         self.meanDriftForce    = 0                                             # Flag for mean drift force. 0: No 1: from control surface 2: from momentum conservation.
         
-    def bodyGeometryFileProperties(self):#body geometry stl file properties
+    def bodyGeometryFileProperties(self):                                      # body geometry stl file properties
         self.bodyGeometry = {                                                  # Structure defining body's mesh
                              'numFace': [],                                    # Number of faces
                              'numVertex': [],                                  # Number of vertices
@@ -103,7 +103,7 @@ class BodyClass:
                              'area': [],                                       # List of cell areas
                              'center': []}                                     # List of cell centers
     
-    def internalProperties(self,filename): #internal properties
+    def internalProperties(self,filename):                                     # internal properties
         self.hydroForce        = {'linearHydroRestCoef':[],
                                   'visDrag':[],
                                   'linearDamping':[],
@@ -117,7 +117,17 @@ class BodyClass:
                                   'ssRadf':{'A':[],
                                             'B':[],
                                             'C':[],
-                                            'D':[]}}                            # Hydrodynamic forces and coefficients used during simulation.
+                                            'D':[]},
+                                  'storage':{'mass':[],
+                                             'momOfInertia':[],
+                                             'fAddedMass':[],
+                                             'output_forceAddedMass':[],
+                                             'output_forceTotal':[]}}           # Hydrodynamic forces and coefficients used during simulation.
+        self.tmp               ={'fadm':[],
+                                 'adjmass':[],
+                                 'mass':[],
+                                 'momOfInertia':[],
+                                 'hydroForce_fAddedMass':[]}                    # temporary file
         self.h5File            = filename                                       # hdf5 file containing the hydrodynamic data
         self.hydroDataBodyNum  = []                                             # Body number within the hdf5 file.
         self.massCalcMethod    = []                                             # Method used to obtain mass: 'user', 'fixed', 'equilibrium'
@@ -300,90 +310,90 @@ class BodyClass:
             self.hydroForce['gbm']['state_space']['D'] = np.zeros((2*gbmDOF,2*gbmDOF))
             self.flexHydroBody = 1
             self.nhBody=0
+            
+    def adjustMassMatrix(self,adjMassWeightFun,B2B):
+        """
+        Merge diagonal term of added mass matrix to the mass matrix
+        1. Store the original mass and added-mass properties
+        2. Add diagonal added-mass inertia to moment of inertia
+        3. Add the maximum diagonal traslational added-mass to body
+        mass - this is not the correct description
 
-    # def adjustMassMatrix(obj,adjMassWeightFun,B2B):
-    #     """
-    #     Merge diagonal term of added mass matrix to the mass matrix
-    #     1. Store the original mass and added-mass properties
-    #     2. Add diagonal added-mass inertia to moment of inertia
-    #     3. Add the maximum diagonal traslational added-mass to body
-    #     mass - this is not the correct description
+        """
+        iBod = self.bodyNumber
+        self.hydroForce['storage']['mass'] = copy(self.mass)
+        self.hydroForce['storage']['momOfInertia'] = copy(self.momOfInertia)
+        self.hydroForce['storage']['fAddedMass'] = copy(self.hydroForce['fAddedMass'])
+        if B2B == 1:
+            self.tmp['fadm'] = np.diag(self.hydroForce['fAddedMass'],k =(iBod-1)*6)
+            self.tmp['adjmass'] = sum(self.tmp['fadm'][0:3]*adjMassWeightFun)
+            self.mass = self.mass + self.tmp['adjmass']
+            self.momOfInertia = self.momOfInertia+self.tmp['fadm'][3:6]
+            self.hydroForce['fAddedMass'][0,(iBod-1)*6] = self.hydroForce['fAddedMass'][0,(iBod-1)*6] - self.tmp['adjmass']
+            self.hydroForce['fAddedMass'][1,1+(iBod-1)*6] = self.hydroForce['fAddedMass'][1,1+(iBod-1)*6] - self.tmp['adjmass']
+            self.hydroForce['fAddedMass'][2,2+(iBod-1)*6] = self.hydroForce['fAddedMass'][2,2+(iBod-1)*6] - self.tmp['adjmass']
+            self.hydroForce['fAddedMass'][3,3+(iBod-1)*6] = 0
+            self.hydroForce['fAddedMass'][4,4+(iBod-1)*6] = 0
+            self.hydroForce['fAddedMass'][5,5+(iBod-1)*6] = 0
+        else:
+            self.tmp['fadm'] = np.diag(self.hydroForce['fAddedMass'])
+            self.tmp['adjmass'] = sum(self.tmp['fadm'][0:3])*adjMassWeightFun
+            self.mass = self.mass + self.tmp['adjmass']
+            self.momOfInertia = self.momOfInertia + self.tmp['fadm'][3:6]
+            self.hydroForce['fAddedMass'][0,0] = self.hydroForce['fAddedMass'][0,0] - self.tmp['adjmass']
+            self.hydroForce['fAddedMass'][1,1] = self.hydroForce['fAddedMass'][1,1] - self.tmp['adjmass']
+            self.hydroForce['fAddedMass'][2,2] = self.hydroForce['fAddedMass'][2,2] - self.tmp['adjmass']
+            self.hydroForce['fAddedMass'][3,3] = 0
+            self.hydroForce['fAddedMass'][4,4] = 0
+            self.hydroForce['fAddedMass'][5,5] = 0
 
-    #     """
-    #     iBod = self.bodyNumber
-    #     self.hydroForce['storage']['mass'] = self.mass
-    #     self.hydroForce['storage']['momOfInertia'] = self.momOfInertia
-    #     self.hydroForce['storage']['fAddedMass'] = self.hydroForce['fAddedMass']
-    #     if B2B == 1:
-    #         tmp['fadm']=diag(self.hydroForce.fAddedMass(:,1+(iBod-1)*6:6+(iBod-1)*6))
-    #         tmp['adjmass'] = sum(tmp.fadm(1:3))*adjMassWeightFun
-    #         self.mass = self.mass + tmp.adjmass
-    #         self.momOfInertia = self.momOfInertia+tmp.fadm(4:6)'
-    #         self.hydroForce.fAddedMass(1,1+(iBod-1)*6) = self.hydroForce.fAddedMass(1,1+(iBod-1)*6) - tmp.adjmass
-    #         self.hydroForce.fAddedMass(2,2+(iBod-1)*6) = self.hydroForce.fAddedMass(2,2+(iBod-1)*6) - tmp.adjmass
-    #         self.hydroForce.fAddedMass(3,3+(iBod-1)*6) = self.hydroForce.fAddedMass(3,3+(iBod-1)*6) - tmp.adjmass
-    #         self.hydroForce.fAddedMass(4,4+(iBod-1)*6) = 0
-    #         self.hydroForce.fAddedMass(5,5+(iBod-1)*6) = 0
-    #         self.hydroForce.fAddedMass(6,6+(iBod-1)*6) = 0
-    #     else
-    #         tmp.fadm=diag(self.hydroForce.fAddedMass)
-    #         tmp.adjmass = sum(tmp.fadm(1:3))*adjMassWeightFun
-    #         self.mass = self.mass + tmp.adjmass
-    #         self.momOfInertia = self.momOfInertia+tmp.fadm(4:6)
-    #         self.hydroForce.fAddedMass(1,1) = self.hydroForce.fAddedMass(1,1) - tmp.adjmass
-    #         self.hydroForce.fAddedMass(2,2) = self.hydroForce.fAddedMass(2,2) - tmp.adjmass
-    #         self.hydroForce.fAddedMass(3,3) = self.hydroForce.fAddedMass(3,3) - tmp.adjmass
-    #         self.hydroForce.fAddedMass(4,4) = 0
-    #         self.hydroForce.fAddedMass(5,5) = 0
-    #         self.hydroForce.fAddedMass(6,6) = 0
+    def restoreMassMatrix(self):
+        """
+        Restore the mass and added-mass matrix back to the original value
+        """
+        self.tmp['mass'] = copy(self.mass)
+        self.tmp['momOfInertia'] = copy(self.momOfInertia)
+        self.tmp['hydroForce_fAddedMass'] = copy(self.hydroForce['fAddedMass'])
+        self.mass = copy(self.hydroForce['storage']['mass'])
+        self.momOfInertia = copy(self.hydroForce['storage']['momOfInertia'])
+        self.hydroForce['fAddedMass'] = copy(self.hydroForce['storage']['fAddedMass'])
+        self.hydroForce['storage']['mass'] = copy(self.tmp['mass'])
+        self.hydroForce['storage']['momOfInertia'] = copy(self.tmp['momOfInertia'])
+        self.hydroForce['storage']['fAddedMass'] = copy(self.tmp['hydroForce_fAddedMass'])
+             
+    def storeForceAddedMass(self,am_mod,ft_mod):
+        """
+        Store the modified added mass and total forces history (inputs)
+        """
+        self.hydroForce['storage']['output_forceAddedMass'] = am_mod
+        self.hydroForce['storage']['output_forceTotal'] = ft_mod
+ 
+    def setInitDisp(self, x_rot, ax_rot, ang_rot, addLinDisp):
+        """
+        Function to set the initial displacement when having initial rotation
+        x_rot: rotation point
+        ax_rot: axis about which to rotate (must be a normal vector)
+        ang_rot: rotation angle in radians
+        addLinDisp: initial linear displacement (in addition to the displacement caused by rotation)
+        """
+        cg = self.cg
+        relCoord = cg - x_rot
+        rotatedRelCoord = self.rotateXYZ(relCoord,ax_rot,ang_rot)
+        newCoord = rotatedRelCoord + x_rot
+        linDisp = newCoord-cg
+        self.initDisp = {'initLinDisp':(linDisp + addLinDisp), 
+                         'initAngularDispAxis': ax_rot, 
+                         'initAngularDispAngle': ang_rot}     
     
-    # def restoreMassMatrix(obj):
-    #     """
-    #     Restore the mass and added-mass matrix back to the original value
-    #     """
-    #     tmp = struct
-    #     tmp.mass = self.mass
-    #     tmp.momOfInertia = self.momOfInertia
-    #     tmp.hydroForce_fAddedMass = self.hydroForce.fAddedMass
-    #     self.mass = self.hydroForce.storage.mass
-    #     self.momOfInertia = self.hydroForce.storage.momOfInertia
-    #     self.hydroForce.fAddedMass = self.hydroForce.storage.fAddedMass
-    #     self.hydroForce.storage = tmp 
-        
-    # def storeForceAddedMass(obj,am_mod,ft_mod):
-    #     """
-    #     Store the modified added mass and total forces history (inputs)
-    #     """
-    #     self.hydroForce.storage.output_forceAddedMass = am_mod
-    #     self.hydroForce.storage.output_forceTotal = ft_mod
-    
-    # def setInitDisp(obj, x_rot, ax_rot, ang_rot, addLinDisp):
-    #     """
-    #     Function to set the initial displacement when having initial rotation
-    #     x_rot: rotation point
-    #     ax_rot: axis about which to rotate (must be a normal vector)
-    #     ang_rot: rotation angle in radians
-    #     addLinDisp: initial linear displacement (in addition to the displacement caused by rotation)
-    #     """
-    #     cg = self.cg
-    #     relCoord = cg - x_rot
-    #     rotatedRelCoord = self.rotateXYZ(relCoord,ax_rot,ang_rot)
-    #     newCoord = rotatedRelCoord + x_rot
-    #     linDisp = newCoord-cg
-    #     self.initDisp.initLinDisp= linDisp + addLinDisp
-    #     self.initDisp.initAngularDispAxis = ax_rot
-    #     self.initDisp.initAngularDispAngle = ang_rot
-    
-    # def listInfo(obj):
-    #     """
-    #     List body info
-    #     """
-    #     fprintf('\n\t***** Body Number #G, Name: #s *****\n',self.hydroData.properties.body_number,self.hydroData.properties.name)
-    #     fprintf('\tBody CG                          (m) = [#G,#G,#G]\n',self.hydroData.properties.cg)
-    #     fprintf('\tBody Mass                       (kg) = #G \n',self.mass)
-    #     fprintf('\tBody Diagonal MOI              (kgm2)= [#G,#G,#G]\n',self.momOfInertia)
-    
-    
+    def listInfo(self):
+        """
+        List body info{:f}\n'.format(self.T)
+        """
+        print('\n\t***** Body Number ', self.hydroData['properties']['body_number'][0][0] ,', Name: ' , self.hydroData['properties']['name'] , ' *****\n')
+        print('\tBody CG                          (m) = [',self.hydroData['properties']['cg'][0],']\n')
+        print('\tBody Mass                       (kg) = ',self.mass[0][0],' \n')
+        print('\tBody Diagonal MOI              (kgm2)= [',self.momOfInertia,']\n')
+
     def bodyGeo(self,fname):
         # Reads mesh file and calculates areas and centroids
         your_mesh = trimesh.load_mesh(fname)
@@ -399,69 +409,27 @@ class BodyClass:
         self.bodyGeometry['area'] = np.transpose([your_mesh.area_faces])        
         
     """
-    # function bodyGeo(obj,fname)
-    #     % Reads mesh file and calculates areas and centroids
-    #     try
-    #         [obj.bodyGeometry.vertex, obj.bodyGeometry.face, obj.bodyGeometry.norm] = import_stl_fast(fname,1,1);
-    #     catch
-    #         [obj.bodyGeometry.vertex, obj.bodyGeometry.face, obj.bodyGeometry.norm] = import_stl_fast(fname,1,2);
-    #     end
-    #     obj.bodyGeometry.numFace = length(obj.bodyGeometry.face);
-    #     obj.bodyGeometry.numVertex = length(obj.bodyGeometry.vertex);
-    #     obj.checkStl();
-    #     obj.triArea();
-    #     obj.triCenter();
-
-        
-    # def checkStl(obj):
-    #     # Function to check STL file
-    #     tnorm = self.bodyGeometry.norm
-    #     #av = zeros(length(area_mag),3)
-    #     #av(:,1) = area_mag.*tnorm(:,1)
-    #     #av(:,2) = area_mag.*tnorm(:,2)
-    #     #av(:,3) = area_mag.*tnorm(:,3)
-    #     #if sum(sum(sign(av_tmp))) ~= sum(sum(sign(av)))
-    #     #    warning(['The order of triangle vertices in ' self.geometryFile ' do not follow the right hand rule. ' ...
-    #     #        'This will causes visualization errors in the SimMechanics Explorer'])
-    #     #
-    #     norm_mag = sqrt(tnorm(:,1).^2 + tnorm(:,2).^2 + tnorm(:,3).^2)
-    #     check = sum(norm_mag)/length(norm_mag)
-    #     if check>1.01 || check<0.99
-    #         error(['length of normal vectors in ' self.geometryFile ' is not equal to one.'])
-        
-    
-    # def triCenter(obj):
-    #     #Function to caculate the center coordinate of a triangle
-    #     points = self.bodyGeometry.vertex
-    #     faces = self.bodyGeometry.face
-    #     c = zeros(length(faces),3)
-    #     c(:,1) = (points(faces(:,1),1)+points(faces(:,2),1)+points(faces(:,3),1))./3
-    #     c(:,2) = (points(faces(:,1),2)+points(faces(:,2),2)+points(faces(:,3),2))./3
-    #     c(:,3) = (points(faces(:,1),3)+points(faces(:,2),3)+points(faces(:,3),3))./3
-    #     self.bodyGeometry.center = c
-    
-    
-    # def plotStl(obj):
-    #     # Plots the body's mesh and normal vectors
-    #     c = self.bodyGeometry.center
-    #     tri = self.bodyGeometry.face
-    #     p = self.bodyGeometry.vertex
-    #     n = self.bodyGeometry.norm
-    #     figure()
-    #     hold on
-    #     trimesh(tri,p(:,1),p(:,2),p(:,3))
-    #     quiver3(c(:,1),c(:,2),c(:,3),n(:,1),n(:,2),n(:,3))
+        function plotStl(obj)
+            % Plots the body's mesh and normal vectors
+            c = obj.bodyGeometry.center;
+            tri = obj.bodyGeometry.face;
+            p = obj.bodyGeometry.vertex;
+            n = obj.bodyGeometry.norm;
+            figure()
+            hold on
+            trimesh(tri,p(:,1),p(:,2),p(:,3))
+            quiver3(c(:,1),c(:,2),c(:,3),n(:,1),n(:,2),n(:,3))
+        end
     """
-    
-    # def checkinputs(obj):
-    #     # Checks the user inputs
-    #     # hydro data file
-    #     if exist(self.h5File,'file')==0 && self.nhBody==0
-    #         error('The hdf5 file #s does not exist',self.h5File)
-        
-    #     # geometry file
-    #     if exist(self.geometryFile,'file') == 0
-    #         error('Could not locate and open geometry file #s',self.geometryFile)
+                    
+    def checkinputs(self):
+        # Checks the user inputs
+        # hydro data file
+        if self.h5File == None and self.nhBody == 0:
+            warnings.warn("The hdf5 file does not exist")
+        # geometry file
+        if self.geometryFile == None:
+            warnings.warn("Could not locate and open geometry file")
         
 
     def noExcitation(self):
@@ -499,18 +467,6 @@ class BodyClass:
                 self.hydroForce['fExt']['re'][ii] = s1(w)
                 self.hydroForce['fExt']['im'][ii] = s2(w)
                 self.hydroForce['fExt']['md'][ii] = s3(w)
-                # all the possible method of inter1
-                # tck = interpolate.splrep(x, y)
-                # a[ii] = interpolate.splev(w, tck)
-
-                # s =interpolate.make_interp_spline(x, y)
-                # a[ii] = s(w) 
-
-                # s = interpolate.interp1d(x, y, "cubic")
-                # a[ii] = s(w)         
-                # l, r = [(2, 0)], [(2, 0)]  # natural spline boundary conditions
-                # s = interpolate.make_interp_spline(x, y, k=3, bc_type=(l, r))
-                # a[ii] = s(w)
 
     def irrExcitation(self,wv,numFreq,waveDir,rho,g):
         # Irregular wave excitation force
@@ -709,143 +665,47 @@ class BodyClass:
         else:
             self.massCalcMethod = 'user'
         
+    def forceAddedMass(self,acc,B2B):
+        # Calculates and outputs the real added mass force time history
+        iBod = self.bodyNumber
+        fam = np.zeros(np.shape(acc))
+        for i in range(6):
+            tmp = np.zeros(np.size(acc[:,i]))
+            for j in range(6):
+                if B2B == 1:
+                    jj = (iBod-1)*6+j
+                else:
+                    jj = j
+                iam = self.hydroForce['fAddedMass'][i,jj]
+                tmp = tmp + acc[:,j]* iam
+            fam[:,i] = tmp
+        return(fam)
     
-    # def fam = forceAddedMass(obj,acc,B2B)
-    #     # Calculates and outputs the real added mass force time history
-    #     iBod = self.bodyNumber
-    #     fam = zeros(size(acc))
-    #     for i =1:6
-    #         tmp = zeros(length(acc(:,i)),1)
-    #         for j =1:6
-    #             if B2B == 1
-    #                 jj = (iBod-1)*6+j
-    #             else
-    #                 jj = j
-                
-    #             iam = self.hydroForce.fAddedMass(i,jj)
-    #             tmp = tmp + acc(:,j) .* iam
-            
-    #         fam(:,i) = tmp
-    
-    # def xn = rotateXYZ(obj,x,ax,t)
-    #     # Function to rotate a point about an arbitrary axis
-    #     # x: 3-componenet coordiantes
-    #     # ax: axis about which to rotate (must be a normal vector)
-    #     # t: rotation angle
-    #     # xn: new coordinates after rotation
-    #     rotMat = zeros(3)
-    #     rotMat(1,1) = ax(1)*ax(1)*(1-cos(t))    + cos(t)
-    #     rotMat(1,2) = ax(2)*ax(1)*(1-cos(t))    + ax(3)*sin(t)
-    #     rotMat(1,3) = ax(3)*ax(1)*(1-cos(t))    - ax(2)*sin(t)
-    #     rotMat(2,1) = ax(1)*ax(2)*(1-cos(t))    - ax(3)*sin(t)
-    #     rotMat(2,2) = ax(2)*ax(2)*(1-cos(t))    + cos(t)
-    #     rotMat(2,3) = ax(3)*ax(2)*(1-cos(t))    + ax(1)*sin(t)
-    #     rotMat(3,1) = ax(1)*ax(3)*(1-cos(t))    + ax(2)*sin(t)
-    #     rotMat(3,2) = ax(2)*ax(3)*(1-cos(t))    - ax(1)*sin(t)
-    #     rotMat(3,3) = ax(3)*ax(3)*(1-cos(t))    + cos(t)
-    #     xn = x*rotMat
+    def rotateXYZ(self,x,ax,t):
+        # Function to rotate a point about an arbitrary axis
+        # x: 3-componenet coordiantes
+        # ax: axis about which to rotate (must be a normal vector)
+        # t: rotation angle
+        # xn: new coordinates after rotation
+        rotMat = np.zeros((3,3))
+        rotMat[0,0] = ax[0]*ax[0]*(1-np.cos(t))    + np.cos(t)
+        rotMat[0,1] = ax[1]*ax[0]*(1-np.cos(t))    + ax[2]*np.sin(t)
+        rotMat[0,2] = ax[2]*ax[0]*(1-np.cos(t))    - ax[1]*np.sin(t)
+        rotMat[1,0] = ax[0]*ax[1]*(1-np.cos(t))    - ax[2]*np.sin(t)
+        rotMat[1,1] = ax[1]*ax[1]*(1-np.cos(t))    + np.cos(t)
+        rotMat[1,2] = ax[2]*ax[1]*(1-np.cos(t))    + ax[0]*np.sin(t)
+        rotMat[2,0] = ax[0]*ax[2]*(1-np.cos(t))    + ax[1]*np.sin(t)
+        rotMat[2,1] = ax[1]*ax[2]*(1-np.cos(t))    - ax[0]*np.sin(t)
+        rotMat[2,2] = ax[2]*ax[2]*(1-np.cos(t))    + np.cos(t)
+        xn = np.dot(x,rotMat)
+        return(xn)
     
     
-    # def verts_out = offsetXYZ(obj,verts,x)
-    #     # Function to move the position vertices
-    #     verts_out(:,1) = verts(:,1) + x(1)
-    #     verts_out(:,2) = verts(:,2) + x(2)
-    #     verts_out(:,3) = verts(:,3) + x(3)
+    def offsetXYZ(self,verts,x):
+        # Function to move the position vertices
+        verts_out = np.zeros(3)#for now change when being tested later
+        verts_out[0] = verts[0] + x[0]
+        verts_out[1] = verts[1] + x[1]
+        verts_out[2] = verts[2] + x[2]
+        return verts_out
     
-"""
-    def write_paraview_vtp(obj, t, pos_all, bodyname, model, simdate, hspressure,wavenonlinearpressure,wavelinearpressure)
-        # Writes vtp files for visualization with ParaView
-        numVertex = self.bodyGeometry.numVertex
-        numFace = self.bodyGeometry.numFace
-        vertex = self.bodyGeometry.vertex
-        face = self.bodyGeometry.face
-        cellareas = self.bodyGeometry.area
-        for it = 1:length(t)
-            # calculate new position
-            pos = pos_all(it,:)
-            vertex_mod = self.rotateXYZ(vertex,[1 0 0],pos(4))
-            vertex_mod = self.rotateXYZ(vertex_mod,[0 1 0],pos(5))
-            vertex_mod = self.rotateXYZ(vertex_mod,[0 0 1],pos(6))
-            vertex_mod = self.offsetXYZ(vertex_mod,pos(1:3))
-            # open file
-            filename = ['vtk' filesep 'body' num2str(self.bodyNumber) '_' bodyname filesep bodyname '_' num2str(it) '.vtp']
-            fid = fopen(filename, 'w')
-            # write header
-            fprintf(fid, '<?xml version="1.0"?>\n')
-            fprintf(fid, ['<!-- WEC-Sim Visualization using ParaView -->\n'])
-            fprintf(fid, ['<!--   model: ' model ' - ran on ' simdate ' -->\n'])
-            fprintf(fid, ['<!--   body:  ' bodyname ' -->\n'])
-            fprintf(fid, ['<!--   time:  ' num2str(t(it)) ' -->\n'])
-            fprintf(fid, '<VTKFile type="PolyData" version="0.1">\n')
-            fprintf(fid, '  <PolyData>\n')
-            # write body info
-            fprintf(fid,['    <Piece NumberOfPoints="' num2str(numVertex) '" NumberOfPolys="' num2str(numFace) '">\n'])
-            # write points
-            fprintf(fid,'      <Points>\n')
-            fprintf(fid,'        <DataArray type="Float32" NumberOfComponents="3" format="ascii">\n')
-            for ii = 1:numVertex
-                fprintf(fid, '          #5.5f #5.5f #5.5f\n', vertex_mod(ii,:))
-            
-            clear vertex_mod
-            fprintf(fid,'        </DataArray>\n')
-            fprintf(fid,'      </Points>\n')
-            # write tirangles connectivity
-            fprintf(fid,'      <Polys>\n')
-            fprintf(fid,'        <DataArray type="Int32" Name="connectivity" format="ascii">\n')
-            for ii = 1:numFace
-                fprintf(fid, '          #i #i #i\n', face(ii,:)-1)
-            
-            fprintf(fid,'        </DataArray>\n')
-            fprintf(fid,'        <DataArray type="Int32" Name="offsets" format="ascii">\n')
-            fprintf(fid, '         ')
-            for ii = 1:numFace
-                n = ii * 3
-                fprintf(fid, ' #i', n)
-            
-            fprintf(fid, '\n')
-            fprintf(fid,'        </DataArray>\n')
-            fprintf(fid, '      </Polys>\n')
-            # write cell data
-            fprintf(fid,'      <CellData>\n')
-            # Cell Areas
-            fprintf(fid,'        <DataArray type="Float32" Name="Cell Area" NumberOfComponents="1" format="ascii">\n')
-            for ii = 1:numFace
-                fprintf(fid, '          #i', cellareas(ii))
-            
-            fprintf(fid, '\n')
-            fprintf(fid,'        </DataArray>\n')
-            # Hydrostatic Pressure
-            if ~isempty(hspressure)
-                fprintf(fid,'        <DataArray type="Float32" Name="Hydrostatic Pressure" NumberOfComponents="1" format="ascii">\n')
-                for ii = 1:numFace
-                    fprintf(fid, '          #i', hspressure.signals.values(it,ii))
-                
-                fprintf(fid, '\n')
-                fprintf(fid,'        </DataArray>\n')
-            
-            # Non-Linear Froude-Krylov Wave Pressure
-            if ~isempty(wavenonlinearpressure)
-                fprintf(fid,'        <DataArray type="Float32" Name="Wave Pressure NonLinear" NumberOfComponents="1" format="ascii">\n')
-                for ii = 1:numFace
-                    fprintf(fid, '          #i', wavenonlinearpressure.signals.values(it,ii))
-                
-                fprintf(fid, '\n')
-                fprintf(fid,'        </DataArray>\n')
-            
-            # Linear Froude-Krylov Wave Pressure
-            if ~isempty(wavelinearpressure)
-                fprintf(fid,'        <DataArray type="Float32" Name="Wave Pressure Linear" NumberOfComponents="1" format="ascii">\n')
-                for ii = 1:numFace
-                    fprintf(fid, '          #i', wavelinearpressure.signals.values(it,ii))
-                
-                fprintf(fid, '\n')
-                fprintf(fid,'        </DataArray>\n')
-            
-            fprintf(fid,'      </CellData>\n')
-            # end file
-            fprintf(fid, '    </Piece>\n')
-            fprintf(fid, '  </PolyData>\n')
-            fprintf(fid, '</VTKFile>')
-            # close file
-            fclose(fid)
-"""

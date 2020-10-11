@@ -671,8 +671,8 @@ class TestBody(unittest.TestCase):
         self.body_10_1.readH5file()
         self.body_10_1.hydroStiffness = np.zeros((6, 6))
         self.body_10_1.viscDrag = {'Drag':np.zeros((6, 6)),
-                                   'cd':np.array([1,0,1,0,1,0]),
-                                   'characteristicArea':np.array([25,0,np.pi*5**2,0,np.pi*5**5,0])}
+                                    'cd':np.array([1,0,1,0,1,0]),
+                                    'characteristicArea':np.array([25,0,np.pi*5**2,0,np.pi*5**5,0])}
         self.body_10_1.linearDamping = np.zeros((6, 6))
         self.body_10_1.mass = 'equilibrium'
         self.body_10_1.bodyGeo("./testData/body_10_test/elipsoid.stl")
@@ -982,6 +982,168 @@ class TestBody(unittest.TestCase):
         self.body_10_1.setMassMatrix(rho,nlHydro)
         result1 = 133376.066729747
         self.assertIsNone(np.testing.assert_allclose(self.body_10_1.mass, result1))
+        
+    def test_adjustMassMatrix(self):
+        w = np.conj(np.transpose(readData("./testData/body_4_test/w.mat"))) 
+        waveDir = [0]
+        CIkt = 601
+        CTTime = readData("./testData/body_4_test/CTTime.mat")[0]
+        dt = 0.1
+        rho = 1000
+        g = 9.81
+        waveType = 'regular'
+        waveAmpTime = np.conj(np.transpose(readData("./testData/body_4_test/waveAmpTime.mat"))) 
+        iBod = 1 #body number
+        numBod = [] #later change it to 2 to check
+        ssCalc = 0
+        nlHydro = 0
+        B2B = 0
+        numFreq = []
+        self.body_4_1.bodyNumber = 1
+        self.body_4_1.bodyTotal = [2]
+        self.body_4_1.readH5file()
+        self.body_4_1.hydroStiffness = np.zeros((6, 6))
+        self.body_4_1.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
+        self.body_4_1.linearDamping = np.zeros((6, 6))
+        self.body_4_1.mass = 'equilibrium'
+        self.body_4_1.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
+        adjMassWeightFun = 5
+        self.body_4_1.momOfInertia = [20907301, 21306090.66, 37085481.11];  
+        self.body_4_1.adjustMassMatrix(adjMassWeightFun,B2B)
+        result1 = readData("./testData/body_4_test/body1_fAddedMass_adjusted.mat")
+        np.testing.assert_allclose(self.body_4_1.hydroForce['fAddedMass'], result1)
+        
+        w = np.conj(np.transpose(readData("./testData/body_5_test/w.mat"))) 
+        waveDir = [0]
+        CIkt = 601
+        CTTime = readData("./testData/body_5_test/CTTime.mat")[0]
+        dt = 0.1
+        rho = 1000
+        g = 9.81
+        waveType = 'regular'
+        waveAmpTime = np.conj(np.transpose(readData("./testData/body_5_test/waveAmpTime.mat"))) 
+        iBod = 1 #body number
+        numBod = [] #later change it to 2 to check
+        ssCalc = 0
+        nlHydro = 0
+        B2B = 1
+        numFreq = []
+        self.body_5_1.bodyNumber = 1
+        self.body_5_1.bodyTotal = [2]
+        self.body_5_1.readH5file()
+        self.body_5_1.hydroStiffness = np.zeros((6, 6))
+        self.body_5_1.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
+        self.body_5_1.linearDamping = np.zeros((6, 6))
+        self.body_5_1.mass = 'equilibrium'
+        self.body_5_1.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
+        adjMassWeightFun = 5
+        self.body_5_1.momOfInertia = [20907301, 21306090.66, 37085481.11]  
+        self.body_5_1.adjustMassMatrix(adjMassWeightFun,B2B)
+        iBod = 2 #body number
+        self.body_5_2.bodyNumber = 2
+        self.body_5_2.bodyTotal = [2]
+        self.body_5_2.readH5file()
+        self.body_5_2.hydroStiffness = np.zeros((6, 6))
+        self.body_5_2.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
+        self.body_5_2.linearDamping = np.zeros((6, 6))
+        self.body_5_2.mass = 'equilibrium'
+        self.body_5_2.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
+        self.body_5_2.momOfInertia = [94419614.57, 94407091.24, 28542224.82]
+        self.body_5_2.adjustMassMatrix(adjMassWeightFun,B2B)
+        result1 = readData("./testData/body_5_test/body1_fAddedMass_adjusted.mat")
+        np.testing.assert_allclose(self.body_5_1.hydroForce['fAddedMass'], result1)
+        result2 = readData("./testData/body_5_test/body2_fAddedMass_adjusted.mat")
+        np.testing.assert_allclose(self.body_5_2.hydroForce['fAddedMass'], result2)
+        
+    def test_restoreMassMatrix(self):
+        w = np.conj(np.transpose(readData("./testData/body_4_test/w.mat"))) 
+        waveDir = [0]
+        CIkt = 601
+        CTTime = readData("./testData/body_4_test/CTTime.mat")[0]
+        dt = 0.1
+        rho = 1000
+        g = 9.81
+        waveType = 'regular'
+        waveAmpTime = np.conj(np.transpose(readData("./testData/body_4_test/waveAmpTime.mat"))) 
+        iBod = 1 #body number
+        numBod = [] #later change it to 2 to check
+        ssCalc = 0
+        nlHydro = 0
+        B2B = 0
+        numFreq = []
+        self.body_4_1.bodyNumber = 1
+        self.body_4_1.bodyTotal = [2]
+        self.body_4_1.readH5file()
+        self.body_4_1.hydroStiffness = np.zeros((6, 6))
+        self.body_4_1.viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
+        self.body_4_1.linearDamping = np.zeros((6, 6))
+        self.body_4_1.mass = 'equilibrium'
+        self.body_4_1.hydroForcePre(w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B)
+        adjMassWeightFun = 5
+        self.body_4_1.momOfInertia = [20907301, 21306090.66, 37085481.11];  
+        self.body_4_1.adjustMassMatrix(adjMassWeightFun,B2B)
+        self.body_4_1.restoreMassMatrix()
+        result1 = readData("./testData/body_4_test/body1_fAddedMass.mat")
+        np.testing.assert_allclose(self.body_4_1.hydroForce['fAddedMass'], result1)
        
+    def test_forceAddedMass(self):
+        B2B = 0
+        acc =np.array([[80, 33, 90, 62, 34, 89],[72, 14, 56, 93, 22, 19]])
+        self.body_4_1.bodyNumber = 1
+        self.body_4_1.hydroForce['fAddedMass'] = readData("./testData/body_4_test/body1_fAddedMass.mat")
+        fam = self.body_4_1.forceAddedMass(acc,B2B)
+        result1 = readData("./testData/body_4_test/body1_fam.mat")
+        np.testing.assert_allclose(fam, result1)
+        
+        B2B = 1
+        acc =np.array([[80, 33, 90, 62, 34, 89],[72, 14, 56, 93, 22, 19]])
+        self.body_5_2.bodyNumber = 2
+        self.body_5_2.hydroForce['fAddedMass'] = readData("./testData/body_5_test/body2_fAddedMass.mat")
+        fam = self.body_5_2.forceAddedMass(acc,B2B)
+        result1 = readData("./testData/body_5_test/body2_fam.mat")
+        np.testing.assert_allclose(fam, result1)
+        
+    def test_rotateXYZ(self):
+        x = [1, 1, 1]
+        ax = [4, 2, -1]
+        t = 30
+        xn = self.body_4_1.rotateXYZ(x,ax,t)
+        result1 = [14.1051275798573, 13.5518950714761, -6.05055454886022]
+        np.testing.assert_allclose(xn, result1)
+        
+        x = [3, -3, -1]
+        ax = [2, 7, -4]
+        t = 15
+        xn = self.body_4_1.rotateXYZ(x,ax,t)
+        result2 = [-53.3476667844558, -139.719783953124, 60.6281843944048]
+        np.testing.assert_allclose(xn, result2)
+        
+    def test_setInitDisp(self):
+        x_rot = np.array([1, 1, 1])
+        ax_rot = np.array([4, 2, -1])
+        ang_rot = 30
+        addLinDisp = 1
+        self.body_4_1.cg = np.array([5 , 5, 5])
+        self.body_4_1.setInitDisp(x_rot, ax_rot, ang_rot, addLinDisp)
+        result1 = [53.4205103194293, 51.2075802859042, -27.2022181954409]
+        np.testing.assert_allclose(self.body_4_1.initDisp['initLinDisp'], result1)
+        result2 = [4, 2, -1]
+        np.testing.assert_allclose(self.body_4_1.initDisp['initAngularDispAxis'], result2)
+        result3 = [30]
+        np.testing.assert_allclose(self.body_4_1.initDisp['initAngularDispAngle'], result3)
+        
+        x_rot = np.array([3, -3, -1])
+        ax_rot = np.array([2, 7, -4])
+        ang_rot = 15
+        addLinDisp = 3
+        self.body_4_1.cg = np.array([0 , 0, -10])
+        self.body_4_1.setInitDisp(x_rot, ax_rot, ang_rot, addLinDisp)
+        result1 = [154.602551002163, 645.438156356736, -322.581371323228]
+        np.testing.assert_allclose(self.body_4_1.initDisp['initLinDisp'], result1)
+        result2 = [2, 7, -4]
+        np.testing.assert_allclose(self.body_4_1.initDisp['initAngularDispAxis'], result2)
+        result3 = [15]
+        np.testing.assert_allclose(self.body_4_1.initDisp['initAngularDispAngle'], result3)
+        
 if __name__ == '__main__':
     unittest.main()
