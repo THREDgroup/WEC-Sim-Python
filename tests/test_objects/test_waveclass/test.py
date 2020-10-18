@@ -8,9 +8,12 @@ Created on Tue May 19 08:43:15 2020
 
 import unittest
 import numpy as np
+import os
+
 
 from waveclass import WaveClass
 
+cwd = os.getcwd()
 class TestWave(unittest.TestCase):
     
     def setUpClass():
@@ -143,7 +146,7 @@ class TestWave(unittest.TestCase):
         self.spectrumImport_1.phaseSeed = 1
         self.spectrumImport_1.freqDisc = 'Imported'
         self.spectrumImport_1.bemFreq = [5.19999512307279,0.0199999977946844]
-        self.spectrumImport_1.spectrumDataFile = "./testData/spectrumImport_1_test/spectrumData.txt"
+        self.spectrumImport_1.spectrumDataFile = cwd + "./testData/spectrumImport_1_test/spectrumData.txt"
         self.spectrumImport_1.setWavePhase()
         result = np.array([np.conj(np.transpose(np.loadtxt("./testData/spectrumImport_1_test/phase.txt")))])
         self.assertIsNone(np.testing.assert_allclose(self.spectrumImport_1.phase, result))
