@@ -33,22 +33,22 @@ class TestBody(unittest.TestCase):
     
     def setUp(self):
         print("setUp")
-        self.body_1 = BodyClass('./testData/hydroData/rm3.h5') #regularCIC
-        self.body_2 = BodyClass('./testData/hydroData/rm3.h5') #irregular
-        self.body_3 = BodyClass('./testData/hydroData/oswec.h5') #irregular wave dir = [0,30,90]
-        self.body_4_1 = BodyClass('./testData/hydroData/rm3.h5') #regular B2B_Case1:b2b = 0
-        self.body_4_2 = BodyClass('./testData/hydroData/rm3.h5') #regular B2B_Case1:b2b = 0
-        self.body_5_1 = BodyClass('./testData/hydroData/rm3.h5') #regular B2B_Case2:b2b = 1
-        self.body_5_2 = BodyClass('./testData/hydroData/rm3.h5') #regular B2B_Case2:b2b = 1
-        self.body_6_1 = BodyClass('./testData/hydroData/rm3.h5') #regularCIC B2B_Case3:b2b = 0
-        self.body_6_2 = BodyClass('./testData/hydroData/rm3.h5') #regularCIC B2B_Case3:b2b = 0
-        self.body_7_1 = BodyClass('./testData/hydroData/rm3.h5') #regularCIC B2B_Case4:b2b = 1
-        self.body_7_2 = BodyClass('./testData/hydroData/rm3.h5') #regularCIC B2B_Case4:b2b = 1
-        self.body_8_1 = BodyClass('./testData/hydroData/rm3.h5') #regularCIC B2B_Case5:b2b = 0,ssCalc = 1
-        self.body_8_2 = BodyClass('./testData/hydroData/rm3.h5') #regularCIC B2B_Case5:b2b = 0,ssCalc = 1
-        self.body_9_1 = BodyClass('./testData/hydroData/rm3.h5') #regularcIC B2B_Case6:b2b = 1,ssCalc = 1
-        self.body_9_2 = BodyClass('./testData/hydroData/rm3.h5') #regularcIC B2B_Case6:b2b = 1,ssCalc = 1
-        self.body_10_1 = BodyClass('./testData/hydroData/ellipsoid.h5') #regular nlHydro = 2
+        self.body_1 = BodyClass(cwd + '/testData/hydroData/rm3.h5') #regularCIC
+        self.body_2 = BodyClass(cwd + '/testData/hydroData/rm3.h5') #irregular
+        self.body_3 = BodyClass(cwd + '/testData/hydroData/oswec.h5') #irregular wave dir = [0,30,90]
+        self.body_4_1 = BodyClass(cwd + '/testData/hydroData/rm3.h5') #regular B2B_Case1:b2b = 0
+        self.body_4_2 = BodyClass(cwd + '/testData/hydroData/rm3.h5') #regular B2B_Case1:b2b = 0
+        self.body_5_1 = BodyClass(cwd + '/testData/hydroData/rm3.h5') #regular B2B_Case2:b2b = 1
+        self.body_5_2 = BodyClass(cwd + '/testData/hydroData/rm3.h5') #regular B2B_Case2:b2b = 1
+        self.body_6_1 = BodyClass(cwd + '/testData/hydroData/rm3.h5') #regularCIC B2B_Case3:b2b = 0
+        self.body_6_2 = BodyClass(cwd + '/testData/hydroData/rm3.h5') #regularCIC B2B_Case3:b2b = 0
+        self.body_7_1 = BodyClass(cwd + '/testData/hydroData/rm3.h5') #regularCIC B2B_Case4:b2b = 1
+        self.body_7_2 = BodyClass(cwd + '/testData/hydroData/rm3.h5') #regularCIC B2B_Case4:b2b = 1
+        self.body_8_1 = BodyClass(cwd + '/testData/hydroData/rm3.h5') #regularCIC B2B_Case5:b2b = 0,ssCalc = 1
+        self.body_8_2 = BodyClass(cwd + '/testData/hydroData/rm3.h5') #regularCIC B2B_Case5:b2b = 0,ssCalc = 1
+        self.body_9_1 = BodyClass(cwd + '/testData/hydroData/rm3.h5') #regularcIC B2B_Case6:b2b = 1,ssCalc = 1
+        self.body_9_2 = BodyClass(cwd + '/testData/hydroData/rm3.h5') #regularcIC B2B_Case6:b2b = 1,ssCalc = 1
+        self.body_10_1 = BodyClass(cwd + '/testData/hydroData/ellipsoid.h5') #regular nlHydro = 2
         
     def tearDown(self):
         print("tearDown\n")
