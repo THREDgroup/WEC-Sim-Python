@@ -1,6 +1,7 @@
 jobs:
   include:
-    - os: linux
+    - name: "Python 3.6 on linux"
+      os: linux
       sudo: required
       language: python
       python: 3.6
@@ -10,7 +11,6 @@ jobs:
       - echo -e "machine github.com\n  login $GITHUB_TOKEN" > ~/.netrc
       - python --version
       - pip install -U pip
-      - pip install -U pytest
       # command to install dependencies
       install: 
       - "pip install -r requirements.txt"
@@ -19,7 +19,8 @@ jobs:
       # command to run tests
       script: python ./tests/test_objects/test_waveclass/test.py
       script: python ./tests/test_objects/test_bodyclass/test.py
-    - os: osx
+    - name: "Python 3.6.5 on macOS 10.13"
+      os: osx
       osx_image: xcode9.4
       language: shell
       env: PYTHON=36
@@ -28,7 +29,6 @@ jobs:
       - brew install git-lfs
       - python3 --version
       - pip3 install -U pip
-      - pip3 install -U pytest
       # command to install dependencies
       install: 
       - "pip3 install -r requirements.txt"
@@ -37,3 +37,19 @@ jobs:
       # command to run tests
       script: python3 ./tests/test_objects/test_waveclass/test.py
       script: python3 ./tests/test_objects/test_bodyclass/test.py
+    - name: "Python 3.5.4 on Windows"
+      os: windows           # Windows 10.0.17134 N/A Build 17134
+      language: shell       # 'language: python' is an error on Travis CI Windows
+      before_install:
+        - choco install python --version 3.5.4
+        - python --version
+        - python -m pip3 install --upgrade pip3
+      env: PATH=/c/Python35:/c/Python35/Scripts:$PATH
+      # command to install dependencies
+      install: 
+      - "pip3 install -r requirements.txt"
+      #before_script:
+      #- git lfs pull
+      # command to run tests
+      script: python ./tests/test_objects/test_waveclass/test.py
+      script: python ./tests/test_objects/test_bodyclass/test.py
