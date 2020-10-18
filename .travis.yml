@@ -1,36 +1,39 @@
 jobs:
   include:
     - os: linux
+      sudo: required
       language: python
-      python:  
-      - 3.6
+      python: 3.6
+      dist: xenial
       # command to install Git LFS
       before_install:
       - echo -e "machine github.com\n  login $GITHUB_TOKEN" > ~/.netrc
-      - git lfs pull
       - python --version
       - pip install -U pip
       - pip install -U pytest
       # command to install dependencies
       install: 
       - "pip install -r requirements.txt"
+      before_script:
+      - git lfs pull
       # command to run tests
       script: python ./tests/test_objects/test_waveclass/test.py
       script: python ./tests/test_objects/test_bodyclass/test.py
     - os: osx
-      language: python
-      python:  
-      - 3.6
+      osx_image: xcode10
+      language: generic
+      env: PYTHON=36
       # command to install Git LFS
       before_install:
-      - echo -e "machine github.com\n  login $GITHUB_TOKEN" > ~/.netrc
-      - git lfs pull
+      - brew install git-lfs
       - python --version
       - pip install -U pip
       - pip install -U pytest
       # command to install dependencies
       install: 
       - "pip install -r requirements.txt"
+      before_script:
+      - git lfs pull
       # command to run tests
       script: python ./tests/test_objects/test_waveclass/test.py
       script: python ./tests/test_objects/test_bodyclass/test.py
