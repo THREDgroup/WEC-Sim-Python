@@ -20,11 +20,11 @@ if lastDir == 'WEC-Sim-Python': # check if we are in desired directory
     cwd = cwd + '/tests/test_objects/test_waveclass'
     
 class TestWave(unittest.TestCase):
-    
-    def setUpClass():
+    @classmethod
+    def setUpClass(cls):
         print("setupClass")
-        
-    def tearDownClass():
+    @classmethod    
+    def tearDownClass(cls):
         print("teardownClass")
     
     def setUp(self):

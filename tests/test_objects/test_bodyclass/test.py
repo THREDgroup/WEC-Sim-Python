@@ -27,11 +27,11 @@ def readData(file): #read MATLAB file
 
 
 class TestBody(unittest.TestCase):
-    
-    def setUpClass():
+    @classmethod
+    def setUpClass(cls):
         print("setupClass")
-        
-    def tearDownClass():
+    @classmethod    
+    def tearDownClass(cls):
         print("teardownClass")
     
     def setUp(self):
@@ -57,6 +57,11 @@ class TestBody(unittest.TestCase):
         print("tearDown\n")
     
     def test_hydroForcePre(self):
+        """
+        test hydroForcePre
+
+        """
+        print("hydroForcePre")
         # RM3 example from WEC-Sim
         # regularCIC
         w = 0.785398163397448
@@ -734,6 +739,7 @@ class TestBody(unittest.TestCase):
         test regular excitation
 
         """
+        print("regExcitation")
         # random number test
         w = 0.785398163397448
         waveDir = [0]
@@ -770,6 +776,7 @@ class TestBody(unittest.TestCase):
         test irregular excitation
 
         """
+        print("irrExcitation")
         # single wavDir case
         w = np.conj(np.transpose(np.loadtxt(cwd + '/testData/body_2_test/w.txt'))) 
         numFreq = 500
@@ -807,6 +814,7 @@ class TestBody(unittest.TestCase):
         test constant added mass and damping
 
         """
+        print("constAddedMassAndDamping")
         # B2B = 0 case
         # Regular
         w = np.conj(np.transpose(readData(cwd + '/testData/body_4_test/w.mat'))) 
@@ -857,6 +865,7 @@ class TestBody(unittest.TestCase):
         """
         test irfInfAddedMassAndDamping
         """
+        print("irfInfAddedMassAndDamping")
         # ssCalc = 0 case
         # B2B = 0 case
         # Regular CIC
@@ -1017,6 +1026,7 @@ class TestBody(unittest.TestCase):
         test setMassMatrix
 
         """
+        print("setMassMatrix")
         # mass = 'equilibirum' case
         # nlHydro = 0
         rho = 1000
@@ -1060,6 +1070,7 @@ class TestBody(unittest.TestCase):
         test adjustMassMatrix
 
         """
+        print("adjustMassMatrix")
         # B2B = 0 case
         w = np.conj(np.transpose(readData(cwd + '/testData/body_4_test/w.mat'))) 
         waveDir = [0]
@@ -1139,6 +1150,7 @@ class TestBody(unittest.TestCase):
         test restorMassMatrix
 
         """
+        print("restorMassMatrix")
         # body_4_1 generate maass matrix
         w = np.conj(np.transpose(readData(cwd + '/testData/body_4_test/w.mat'))) 
         waveDir = [0]
@@ -1177,6 +1189,7 @@ class TestBody(unittest.TestCase):
         """
         # random number test to confirm validity
         # B2B = 0 case
+        print("forceAddedMAss")
         B2B = 0
         acc =np.array([[80, 33, 90, 62, 34, 89],[72, 14, 56, 93, 22, 19]])
         self.body_4_1.bodyNumber = 1
@@ -1201,6 +1214,7 @@ class TestBody(unittest.TestCase):
 
         """
         # random number test to confirm validity
+        print("rotateXYZ")
         x = [1, 1, 1]
         ax = [4, 2, -1]
         t = 30
@@ -1222,6 +1236,7 @@ class TestBody(unittest.TestCase):
 
         """
         # random number test to confirm validity
+        print("setInitDisp")
         x_rot = np.array([1, 1, 1])
         ax_rot = np.array([4, 2, -1])
         ang_rot = 30
