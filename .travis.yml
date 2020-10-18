@@ -1,7 +1,5 @@
 jobs:
   include:
-    - language: MATLAB
-      matlab: R2020a
     - language: python
       python:  
       - 3.6
