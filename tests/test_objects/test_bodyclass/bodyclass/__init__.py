@@ -7,6 +7,10 @@ Created on Fri Apr  3 07:52:07 2020
 This code is written based on WEC-sim.
 wonsungjun0000@gmail.com
 
+Note: All the struct() has been changed to dictionary
+
+Note: trimesh is used to obtain bodyGeometry properties
+
 """
 import h5py
 import numpy as np
@@ -22,7 +26,6 @@ class BodyClass:
     def hdf5FileProperties(self):#hdf5 file properties
         """
         Hydrodynamic data from BEM or user defined.
-        hydroData in WEC-Sim-Python is dictionary whereas in WEC-Sim it is struct()
         
         """
         self.hydroData={'simulation_parameters':{'scaled':[],
@@ -60,22 +63,22 @@ class BodyClass:
     def inputFileProperties(self):#input file properties
         self.name              = []                                            # Body name. For WEC bodies this is given in the h5 file.
         self.mass              = []                                            # Mass in kg or specify 'equilibrium' to have mass= dis vol * density
-        self.momOfInertia      = []                                            # Moment of inertia [Ixx Iyy Izz] in kg*m^2
-        self.cg                = []                                            # Center of gravity [x y z] in meters. For WEC bodies this is given in the h5 file.
-        self.cb                = []                                            # Center of buoyancy [x y z] in meters. For WEC bodies this is given in the h5 file.
+        self.momOfInertia      = []                                            # Moment of inertia [Ixx, Iyy, Izz] in kg*m^2
+        self.cg                = []                                            # Center of gravity [x, y, z] in meters. For WEC bodies this is given in the h5 file.
+        self.cb                = []                                            # Center of buoyancy [x, y, z] in meters. For WEC bodies this is given in the h5 file.
         self.dispVol           = []                                            # Displaced volume at equilibrium position in meters cubed. For WEC bodies this is given in the h5 file.
         self.dof               = []                                            # Number of DOFs. For WEC bodies this is given in the h5 file. IF not, default is 6
         self.dof_gbm           = []                                            # Number of DOFs for GBM.
-        self.dof_start         = []                                            # Index of DOF starts. For WEC bodies this is given in the h5 file. IF not, default is (bodyNumber-1)*6+1
-        self.dof_end           = []                                            # Index of DOF ends. For WEC bodies this is given in the h5 file. IF not, default is (bodyNumber-1)*6+6
+        self.dof_start         = []                                            # Index of DOF starts. For WEC bodies this is given in the h5 file. IF not, default is (bodyNumber-1)*6
+        self.dof_end           = []                                            # Index of DOF ends. For WEC bodies this is given in the h5 file. IF not, default is (bodyNumber-1)*6+5
         self.geometryFile      = 'NONE'                                        # Location of geomtry stl files
         self.viscDrag          = {                                             # Structure defining the viscous (quadratic) drag
                                   'Drag':                 [0,0,0,0,0,0],       # Viscous (quadratic) drag, matrix 6x6
                                   'cd':                   [0,0,0,0,0,0],       # Viscous (quadratic) drag cd coefficient, vector length 6
                                   'characteristicArea':   [0,0,0,0,0,0]}       # Characteristic area for viscous drag, vector length 6
         self.initDisp          = {                                             # Structure defining the initial displacement
-                                  'initLinDisp':          [0,0,0],             # Initial displacement of center fo gravity - used for decay tests (format: [displacment in m], default = [0 0 0])
-                                  'initAngularDispAxis':  [0,1,0],             # Initial displacement of cog - axis of rotation - used for decay tests (format: [x y z], default = [1 0 0])
+                                  'initLinDisp':          [0,0,0],             # Initial displacement of center fo gravity - used for decay tests (format: [displacment in m], default = [0, 0, 0])
+                                  'initAngularDispAxis':  [0,1,0],             # Initial displacement of cog - axis of rotation - used for decay tests (format: [x y z], default = [1, 0, 0])
                                   'initAngularDispAngle': 0}                   # Initial displacement of cog - Angle of rotation - used for decay tests (format: [radians], default = 0)
         self.hydroStiffness    = [0,0,0,0,0,0]                                 # Hydrostatic stiffness matrix overrides BEMIO definition, matrix 6x6
         self.linearDamping     = [0,0,0,0,0,0]                                 # Linear damping coefficient, matrix size of 6x6
@@ -85,10 +88,10 @@ class BodyClass:
                                   'opacity': 1}                                # Visualization opacity for either SimMechanics Explorer or Paraview.
         self.morisonElement   = {                                              # Structure defining the Morrison Elements
                                  'cd':                 [0,0,0],                # Viscous (quadratic) drag cd, vector length 3
-                                 'ca':                 [0,0,0],                # Added mass coefficent for Morrison Element (format [Ca_x Ca_y Ca_z], default = [0 0 0])
-                                 'characteristicArea': [0,0,0],                # Characteristic area for Morrison Elements calculations (format [Area_x Area_y Area_z], default = [0 0 0])
+                                 'ca':                 [0,0,0],                # Added mass coefficent for Morrison Element (format [Ca_x, Ca_y, Ca_z], default = [0 0 0])
+                                 'characteristicArea': [0,0,0],                # Characteristic area for Morrison Elements calculations (format [Area_x, Area_y, Area_z], default = [0 0 0])
                                  'VME':                 0     ,                # Characteristic volume for Morrison Element (default = 0)
-                                 'rgME':               [0,0,0]}                # Vector from center of gravity to point of application for Morrison Element (format [X Y Z], default = [0 0 0]).
+                                 'rgME':               [0,0,0]}                # Vector from center of gravity to point of application for Morrison Element (format [X, Y, Z], default = [0 0 0]).
         self.nhBody            = 0                                             # Flag for non-hydro body.
         self.flexHydroBody     = 0                                             # Flag for flexible body. 
         self.meanDriftForce    = 0                                             # Flag for mean drift force. 0: No 1: from control surface 2: from momentum conservation.
@@ -102,9 +105,10 @@ class BodyClass:
                              'norm': [],                                       # List of normal vectors
                              'area': [],                                       # List of cell areas
                              'center': []}                                     # List of cell centers
+        self.meshFile    = []                                                  # body geometry stl file from Trimesh api
     
-    def internalProperties(self,filename):                                     # internal properties
-        self.hydroForce        = {'linearHydroRestCoef':[],
+    def internalProperties(self,filename):                                     # internal properties 
+        self.hydroForce        = {'linearHydroRestCoef':[],                    # Hydrodynamic forces and coefficients used during simulation.
                                   'visDrag':[],
                                   'linearDamping':[],
                                   'userDefinedFe':[],
@@ -122,26 +126,36 @@ class BodyClass:
                                              'momOfInertia':[],
                                              'fAddedMass':[],
                                              'output_forceAddedMass':[],
-                                             'output_forceTotal':[]}}           # Hydrodynamic forces and coefficients used during simulation.
-        self.tmp               ={'fadm':[],
+                                             'output_forceTotal':[]}}           
+        self.tmp               ={'fadm':[],                                    # temporary file
                                  'adjmass':[],
                                  'mass':[],
                                  'momOfInertia':[],
-                                 'hydroForce_fAddedMass':[]}                    # temporary file
-        self.h5File            = filename                                       # hdf5 file containing the hydrodynamic data
-        self.hydroDataBodyNum  = []                                             # Body number within the hdf5 file.
-        self.massCalcMethod    = []                                             # Method used to obtain mass: 'user', 'fixed', 'equilibrium'
-        self.bodyNumber        = []                                             # bodyNumber in WEC-Sim as defined in the input file. Can be different from the BEM body number.
-        self.bodyTotal         = 0                                              # Total number of WEC-Sim bodies (body block iterations)
-        self.lenJ              = []                                             # Matrices length. 6 for no body-to-body interactions. 6*numBodies if body-to-body interactions.
+                                 'hydroForce_fAddedMass':[]}                    
+        self.h5File            = filename                                      # hdf5 file containing the hydrodynamic data
+        self.hydroDataBodyNum  = []                                            # Body number within the hdf5 file.
+        self.massCalcMethod    = []                                            # Method used to obtain mass: 'user', 'fixed', 'equilibrium'
+        self.bodyNumber        = []                                            # bodyNumber in WEC-Sim as defined in the input file. Can be different from the BEM body number.
+        self.bodyTotal         = 0                                             # Total number of WEC-Sim bodies (body block iterations)
+        self.lenJ              = []                                            # Matrices length. 6 for no body-to-body interactions. 6*numBodies if body-to-body interactions.
 
     def __init__(self,filename):
+        """
+        Initialize Body Class
+        Takes string parameter called filename
+        filename: name of h5 file
+
+        """
         self.bodyGeometryFileProperties()
         self.internalProperties(filename)
         self.hdf5FileProperties()
         self.meanDriftForce = 0
 
     def readH5file(self):
+        """
+        Read and recond properties of h5 file in self.hydroData
+
+        """
         f = h5py.File(self.h5File, 'r')
         name = '/body' + str(self.bodyNumber)
         self.cg = np.transpose(np.array(f.get(name + '/properties/cg')))
@@ -222,7 +236,7 @@ class BodyClass:
         
     def loadHydroData(self, hydroData):
         """
-        Loads hydroData structure from matlab variable as alternative
+        Loads user defiend hydroData structure as alternative
         to reading the h5 file. Used in wecSimMCR
 
         """
@@ -238,6 +252,7 @@ class BodyClass:
     
     def hydroForcePre(self,w,waveDir,CIkt,CTTime,numFreq,dt,rho,g,waveType,waveAmpTime,iBod,numBod,ssCalc,nlHydro,B2B):
         """
+        This is the most important method of this class
         HydroForce Pre-processing calculations
         1. Set the linear hydrodynamic restoring coefficient, viscous
             drag, and linear damping matrices
@@ -246,7 +261,7 @@ class BodyClass:
         """
         self.setMassMatrix(rho,nlHydro)
         if self.dof_gbm > 0:
-            #self.linearDamping = [self.linearDamping zeros(1,self.dof-length(self.linearDamping))]
+            #self.linearDamping = [self.linearDamping np.zeros(1,self.dof-np.size(self.linearDamping))] # to use this you need to define self.linearDamping
             tmp0 = self.linearDamping
             tmp1 = np.size(self.linearDamping)
             self.linearDamping = np.zeros(self.dof[0])                
@@ -268,7 +283,7 @@ class BodyClass:
             k = self.hydroData['hydro_coeffs']['linear_restoring_stiffness']#(:,self.dof_start:self.dof_end)
             self.hydroForce['linearHydroRestCoef'] = k*rho*g
 
-        if  self.viscDrag['Drag'].any() == 1:  #check if self.viscDrag.Drag is defined
+        if  self.viscDrag['Drag'].any() == 1:  #check if self.viscDrag['Drag'] is defined
             self.hydroForce['visDrag'] = self.viscDrag['Drag']
         else:
             self.hydroForce['visDrag'] = np.diag(0.5*rho*self.viscDrag['cd']*self.viscDrag['characteristicArea'])
@@ -321,7 +336,7 @@ class BodyClass:
 
         """
         iBod = self.bodyNumber
-        self.hydroForce['storage']['mass'] = copy(self.mass)
+        self.hydroForce['storage']['mass'] = copy(self.mass) # use copy method to set it as seperate variable
         self.hydroForce['storage']['momOfInertia'] = copy(self.momOfInertia)
         self.hydroForce['storage']['fAddedMass'] = copy(self.hydroForce['fAddedMass'])
         if B2B == 1:
@@ -337,7 +352,7 @@ class BodyClass:
             self.hydroForce['fAddedMass'][5,5+(iBod-1)*6] = 0
         else:
             self.tmp['fadm'] = np.diag(self.hydroForce['fAddedMass'])
-            self.tmp['adjmass'] = sum(self.tmp['fadm'][0:3])*adjMassWeightFun
+            self.tmp['adjmass'] = sum(self.tmp['fadm'][0:3])*adjMassWeightFun # scalar value for adjMassWeighFun
             self.mass = self.mass + self.tmp['adjmass']
             self.momOfInertia = self.momOfInertia + self.tmp['fadm'][3:6]
             self.hydroForce['fAddedMass'][0,0] = self.hydroForce['fAddedMass'][0,0] - self.tmp['adjmass']
@@ -350,6 +365,7 @@ class BodyClass:
     def restoreMassMatrix(self):
         """
         Restore the mass and added-mass matrix back to the original value
+        Used copy method to set as new variables
         """
         self.tmp['mass'] = copy(self.mass)
         self.tmp['momOfInertia'] = copy(self.momOfInertia)
@@ -395,8 +411,14 @@ class BodyClass:
         print('\tBody Diagonal MOI              (kgm2)= [',self.momOfInertia,']\n')
 
     def bodyGeo(self,fname):
-        # Reads mesh file and calculates areas and centroids
+        """
+        Reads mesh file and calculates areas and centroids
+        Use trimesh to get geometry values besides using the method from WEC-Sim
+        Takes in string parameter called fname. fname is name of stl file
+
+        """
         your_mesh = trimesh.load_mesh(fname)
+        self.meshFile = your_mesh
         v = your_mesh.triangles.reshape(int(np.size(your_mesh.triangles)/3),3)
         [vertex,faces] = np.unique(v,return_inverse=True,axis=0)
         face = faces.reshape(int(np.size(faces)/3),3)+1
@@ -408,22 +430,21 @@ class BodyClass:
         self.bodyGeometry['center'] = your_mesh.triangles_center
         self.bodyGeometry['area'] = np.transpose([your_mesh.area_faces])        
         
-    """
-        function plotStl(obj)
-            % Plots the body's mesh and normal vectors
-            c = obj.bodyGeometry.center;
-            tri = obj.bodyGeometry.face;
-            p = obj.bodyGeometry.vertex;
-            n = obj.bodyGeometry.norm;
-            figure()
-            hold on
-            trimesh(tri,p(:,1),p(:,2),p(:,3))
-            quiver3(c(:,1),c(:,2),c(:,3),n(:,1),n(:,2),n(:,3))
-        end
-    """
+    def plotStl(self):
+        """
+        Plots the body's mesh
+        networkx is required if you want to use this function
+
+        """
+        # Plots the body's mesh
+        your_mesh = self.meshFile
+        your_mesh.show()
                     
     def checkinputs(self):
-        # Checks the user inputs
+        """
+        Checks the user inputs
+
+        """
         # hydro data file
         if self.h5File == None and self.nhBody == 0:
             warnings.warn("The hdf5 file does not exist")
@@ -433,15 +454,21 @@ class BodyClass:
         
 
     def noExcitation(self):
-        # Set exciation force for no excitation case
+        """
+        Set exciation force for no excitation case
+        Gets used in hydroForcePre for noWave condition
+        """
         nDOF = int(self.dof[0])
         self.hydroForce['fExt']['re'] = np.zeros(nDOF)
         self.hydroForce['fExt']['im'] = np.zeros(nDOF)
     
     
     def regExcitation(self,w,waveDir,rho,g):
-        # Regular wave excitation force
-        # Used by hydroForcePre
+        """
+        Regular wave excitation force
+        Used by hydroForcePre       
+
+        """
         nDOF = int(self.dof[0])
         re = self.hydroData['hydro_coeffs']['excitation']['re']*rho*g
         im = self.hydroData['hydro_coeffs']['excitation']['im']*rho*g
@@ -453,7 +480,7 @@ class BodyClass:
             if np.size(self.hydroData['simulation_parameters']['wave_dir']) > 1:
                 x = self.hydroData['simulation_parameters']['w'][0]
                 y = self.hydroData['simulation_parameters']['wave_dir'][0]
-                s1 = interpolate.interp2d(x,y, np.squeeze(re[ii]))
+                s1 = interpolate.interp2d(x,y, np.squeeze(re[ii]))# interpolate using interp2d to get interpolation of 2d space
                 self.hydroForce['fExt']['re'][ii] = s1(w[0],waveDir)
                 s2 = interpolate.interp2d(x,y, np.squeeze(im[ii]))
                 self.hydroForce['fExt']['im'][ii] = s2(w[0],waveDir)
@@ -461,7 +488,7 @@ class BodyClass:
                 self.hydroForce['fExt']['md'][ii] = s3(w[0],waveDir)
             elif self.hydroData['simulation_parameters']['wave_dir'] == waveDir:
                 x = self.hydroData['simulation_parameters']['w'][0]
-                s1 = interpolate.CubicSpline(x, np.squeeze(re[ii][0]))
+                s1 = interpolate.CubicSpline(x, np.squeeze(re[ii][0]))# interpolate using CubicSline to get interpolation of spline 3d space
                 s2 = interpolate.CubicSpline(x, np.squeeze(im[ii][0]))
                 s3 = interpolate.CubicSpline(x, np.squeeze(md[ii][0]))
                 self.hydroForce['fExt']['re'][ii] = s1(w)
@@ -469,8 +496,11 @@ class BodyClass:
                 self.hydroForce['fExt']['md'][ii] = s3(w)
 
     def irrExcitation(self,wv,numFreq,waveDir,rho,g):
-        # Irregular wave excitation force
-        # Used by hydroForcePre
+        """
+        Irregular wave excitation force
+        Used by hydroForcePre
+
+        """
         nDOF = int(self.dof[0])
         re = self.hydroData['hydro_coeffs']['excitation']['re']*rho*g
         im = self.hydroData['hydro_coeffs']['excitation']['im']*rho*g
@@ -482,7 +512,7 @@ class BodyClass:
             if np.size(self.hydroData['simulation_parameters']['wave_dir']) > 1:
                 x = self.hydroData['simulation_parameters']['w'][0]
                 y = self.hydroData['simulation_parameters']['wave_dir'][0]
-                s1 = interpolate.interp2d(x,y, np.squeeze(re[ii]))
+                s1 = interpolate.interp2d(x,y, np.squeeze(re[ii]))# interpolate using interp2d to get interpolation of 2d space
                 self.hydroForce['fExt']['re'][:,:,ii] = s1(wv[0],waveDir)
                 s2 = interpolate.interp2d(x,y, np.squeeze(im[ii]))
                 self.hydroForce['fExt']['im'][:,:,ii] = s2(wv[0],waveDir)
@@ -490,7 +520,7 @@ class BodyClass:
                 self.hydroForce['fExt']['md'][:,:,ii] = s3(wv[0],waveDir)
             elif self.hydroData['simulation_parameters']['wave_dir'] == waveDir:
                 x = self.hydroData['simulation_parameters']['w'][0]
-                s1 = interpolate.CubicSpline(x, np.squeeze(re[ii][0]))
+                s1 = interpolate.CubicSpline(x, np.squeeze(re[ii][0]))# interpolate using CubicSline to get interpolation of spline 3d space
                 s2 = interpolate.CubicSpline(x, np.squeeze(im[ii][0]))
                 s3 = interpolate.CubicSpline(x, np.squeeze(md[ii][0]))
                 self.hydroForce['fExt']['re'][:,:,ii] = s1(wv)
@@ -498,8 +528,11 @@ class BodyClass:
                 self.hydroForce['fExt']['md'][:,:,ii] = s3(wv)
     
     def userDefinedExcitation(self,waveAmpTime,dt,waveDir,rho,g):
-        # Calculated User-Defined wave excitation force with non-causal convolution
-        # Used by hydroForcePre
+        """
+        Calculated User-Defined wave excitation force with non-causal convolution
+        Used by hydroForcePre
+        
+        """
         nDOF = int(self.dof[0])
         kf = self.hydroData['hydro_coeffs']['excitation']['impulse_response_fun']['f']*rho*g
         kt = self.hydroData['hydro_coeffs']['excitation']['impulse_response_fun']['t'][0]
@@ -507,10 +540,10 @@ class BodyClass:
         for ii in range(nDOF):
             if np.size(self.hydroData['simulation_parameters']['wave_dir']) > 1:
                 y = self.hydroData['simulation_parameters']['wave_dir'][0] 
-                s1 = interpolate.interp2d(kt,y, np.squeeze(kf[ii]))
+                s1 = interpolate.interp2d(kt,y, np.squeeze(kf[ii])) # interpolate using interp2d to get interpolation of 2d space
                 self.userDefinedExcIRF = s1(t,waveDir)
             elif self.hydroData['simulation_parameters']['wave_dir'] == waveDir:
-                s1 = interpolate.CubicSpline(kt, np.squeeze(kf[ii][0]))
+                s1 = interpolate.CubicSpline(kt, np.squeeze(kf[ii][0])) # interpolate using CubicSline to get interpolation of spline 3d space
                 self.userDefinedExcIRF = s1(t)
             else:
                 warnings.warn("Default wave direction different from hydro database value. Wave direction (waves.waveDir) should be specified on input file.",DeprecationWarning)
@@ -523,8 +556,11 @@ class BodyClass:
     
     
     def constAddedMassAndDamping(self,w,CIkt,rho,B2B):
-        # Set added mass and damping for a specific frequency
-        # Used by hydroForcePre
+        """
+        Set added mass and damping for a specific frequency
+        Used by hydroForcePre
+        
+        """
         am = self.hydroData['hydro_coeffs']['added_mass']['all']*rho
         rd = self.hydroData['hydro_coeffs']['radiation_damping']['all']*rho
         for i in range(len(self.hydroData['simulation_parameters']['w'][0])):
@@ -541,7 +577,7 @@ class BodyClass:
                     self.hydroForce['fAddedMass'][ii,jj] = s1(w)
                     s2 = interpolate.CubicSpline(self.hydroData['simulation_parameters']['w'][0], np.squeeze(rd[ii,jj,:]))
                     self.hydroForce['fDamping'][ii,jj] = s2(w)
-        else:
+        else: #B2B =2
             nDOF = int(self.dof[0])
             self.hydroForce['fAddedMass'] = np.zeros((nDOF,nDOF))
             self.hydroForce['fDamping'] = np.zeros((nDOF,nDOF))
@@ -556,11 +592,14 @@ class BodyClass:
     
     
     def irfInfAddedMassAndDamping(self,CIkt,CTTime,ssCalc,rho,B2B):
-        # Set radiation force properties using impulse response function
-        # Used by hydroForcePre
-        # Added mass at infinite frequency
-        # Convolution integral raditation dampingiBod
-        # State space formulation
+        """
+        Set radiation force properties using impulse response function\
+        Added mass at infinite frequency
+        Convolution integral raditation dampingiBod
+        State space formulation
+        Used by hydroForcePre
+        
+        """
         nDOF = int(self.dof[0])
         if B2B == 1:
             LDOF = int(self.bodyTotal[0])*6
@@ -644,8 +683,11 @@ class BodyClass:
             self.hydroForce['ssRadf']['C'] = Cf*rho
     
     def setMassMatrix(self, rho, nlHydro):
-        # Sets mass for the special cases of body at equilibrium or fixed
-        # Used by hydroForcePre
+        """
+        Sets mass for the special cases of body at equilibrium or fixed
+        Used by hydroForcePre
+        
+        """
         if self.mass == 'equilibrium':
             self.massCalcMethod = self.mass
             if nlHydro == 0:
@@ -666,7 +708,10 @@ class BodyClass:
             self.massCalcMethod = 'user'
         
     def forceAddedMass(self,acc,B2B):
-        # Calculates and outputs the real added mass force time history
+        """
+        Calculates and outputs the real added mass force time history
+        
+        """
         iBod = self.bodyNumber
         fam = np.zeros(np.shape(acc))
         for i in range(6):
@@ -682,11 +727,14 @@ class BodyClass:
         return(fam)
     
     def rotateXYZ(self,x,ax,t):
-        # Function to rotate a point about an arbitrary axis
-        # x: 3-componenet coordiantes
-        # ax: axis about which to rotate (must be a normal vector)
-        # t: rotation angle
-        # xn: new coordinates after rotation
+        """
+        Function to rotate a point about an arbitrary axis
+        x: 3-componenet coordiantes
+        ax: axis about which to rotate (must be a normal vector)
+        t: rotation angle
+        xn: new coordinates after rotation
+        
+        """
         rotMat = np.zeros((3,3))
         rotMat[0,0] = ax[0]*ax[0]*(1-np.cos(t))    + np.cos(t)
         rotMat[0,1] = ax[1]*ax[0]*(1-np.cos(t))    + ax[2]*np.sin(t)
@@ -702,7 +750,10 @@ class BodyClass:
     
     
     def offsetXYZ(self,verts,x):
-        # Function to move the position vertices
+        """
+        Function to move the position vertices
+        
+        """
         verts_out = np.zeros(3)#for now change when being tested later
         verts_out[0] = verts[0] + x[0]
         verts_out[1] = verts[1] + x[1]

@@ -12,3 +12,4 @@ git pull
 # to run nl-hydro you need to install trimesh 3.8.6
 
 pip install trimesh
+pip install networkx

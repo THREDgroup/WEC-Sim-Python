@@ -201,7 +201,7 @@ class TestWave(unittest.TestCase):
         
     def test_irregWaveSpectrum(self):
         """
-        Test SetWavePhase
+        Test irregWaveSpectrum
         """
     
         print("irregWaveSpectrum")

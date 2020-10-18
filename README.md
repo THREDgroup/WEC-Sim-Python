@@ -8,7 +8,8 @@
 **Note: WEC-Sim-Python has not been completed.** Estimated date of completion: **February, 2021**
 ### Currently supports
 - [x] Wave class
-- [x] Body class: Testing nlHydro
+- [x] Body class
+- [x] Simulation class: loadSimMechModel test
 ### Future update
 - [ ] Other source class and BEMIO 
 - [ ] Open AI Gym for simulation
