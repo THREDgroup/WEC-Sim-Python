@@ -3,7 +3,11 @@
 """
 Created on Tue May 19 08:43:15 2020
 
-@author: logical
+@author: SungJun Won
+
+This code is written based on WEC-sim.
+wonsungjun0000@gmail.com
+
 """
 
 import unittest
