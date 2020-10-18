@@ -3,7 +3,8 @@ jobs:
     - language: python
       python:  
       - 3.6
-      # comman to install Git LFS
+      # command to install Git LFS
+      os: linux
       before_install:
       - echo -e "machine github.com\n  login $GITHUB_TOKEN" > ~/.netrc
       - git lfs pull
