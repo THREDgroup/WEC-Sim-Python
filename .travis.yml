@@ -1,16 +1,19 @@
-language: python
-python:  
-- 3.6
-# comman to install Git LFS
-before_install:
-- echo -e "machine github.com\n  login $GITHUB_TOKEN" > ~/.netrc
-- git lfs pull
-- python --version
-- pip install -U pip
-- pip install -U pytest
-# command to install dependencies
-install: 
-- "pip install -r requirements.txt"
-# command to run tests
-script: python ./tests/test_objects/test_waveclass/test.py
-script: python ./tests/test_objects/test_bodyclass/test.py
+matrix:
+  include:
+    -language: MATLAB
+    -language: python
+      python:  
+      - 3.6
+      # comman to install Git LFS
+      before_install:
+      - echo -e "machine github.com\n  login $GITHUB_TOKEN" > ~/.netrc
+      - git lfs pull
+      - python --version
+      - pip install -U pip
+      - pip install -U pytest
+      # command to install dependencies
+      install: 
+      - "pip install -r requirements.txt"
+      # command to run tests
+      script: python ./tests/test_objects/test_waveclass/test.py
+      script: python ./tests/test_objects/test_bodyclass/test.py
