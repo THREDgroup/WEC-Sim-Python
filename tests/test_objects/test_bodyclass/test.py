@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-'''
+"""
 Created on Tue May 19 08:43:15 2020
 
 @author: logical
-'''
+"""
 
 import unittest
 import numpy as np
@@ -730,10 +730,10 @@ class TestBody(unittest.TestCase):
         self.assertEqual(self.body_10_1.bodyGeometry['numFace'], 2880)
         
     def test_regExcitation(self):
-        '''
+        """
         test regular excitation
 
-        '''
+        """
         # random number test
         w = 0.785398163397448
         waveDir = [0]
@@ -766,10 +766,10 @@ class TestBody(unittest.TestCase):
         self.assertIsNone(np.testing.assert_allclose(self.body_4_1.hydroForce['fExt']['md'], result3))
         
     def test_irrExcitation(self):
-        '''
+        """
         test irregular excitation
 
-        '''
+        """
         # single wavDir case
         w = np.conj(np.transpose(np.loadtxt(cwd + '/testData/body_2_test/w.txt'))) 
         numFreq = 500
@@ -803,10 +803,10 @@ class TestBody(unittest.TestCase):
         self.assertIsNone(np.testing.assert_allclose(self.body_3.hydroForce['fExt']['md'], result3))
         
     def test_constAddedMassAndDamping(self):
-        '''
+        """
         test constant added mass and damping
 
-        '''
+        """
         # B2B = 0 case
         # Regular
         w = np.conj(np.transpose(readData(cwd + '/testData/body_4_test/w.mat'))) 
@@ -854,9 +854,9 @@ class TestBody(unittest.TestCase):
         self.assertIsNone(np.testing.assert_allclose(self.body_5_2.hydroForce['fDamping'], result4))
         
     def test_irfInfAddedMassAndDamping(self):
-        '''
+        """
         test irfInfAddedMassAndDamping
-        '''
+        """
         # ssCalc = 0 case
         # B2B = 0 case
         # Regular CIC
@@ -1013,10 +1013,10 @@ class TestBody(unittest.TestCase):
         self.assertIsNone(np.testing.assert_allclose(self.body_9_2.hydroForce['ssRadf']['D'], result6))
        
     def test_setMassMatrix(self):
-        '''
+        """
         test setMassMatrix
 
-        '''
+        """
         # mass = 'equilibirum' case
         # nlHydro = 0
         rho = 1000
@@ -1056,10 +1056,10 @@ class TestBody(unittest.TestCase):
         self.assertIsNone(np.testing.assert_allclose(self.body_10_1.mass, result1))
         
     def test_adjustMassMatrix(self):
-        '''
+        """
         test adjustMassMatrix
 
-        '''
+        """
         # B2B = 0 case
         w = np.conj(np.transpose(readData(cwd + '/testData/body_4_test/w.mat'))) 
         waveDir = [0]
@@ -1135,10 +1135,10 @@ class TestBody(unittest.TestCase):
         np.testing.assert_allclose(self.body_5_2.hydroForce['fAddedMass'], result2)
         
     def test_restoreMassMatrix(self):
-        '''
+        """
         test restorMassMatrix
 
-        '''
+        """
         # body_4_1 generate maass matrix
         w = np.conj(np.transpose(readData(cwd + '/testData/body_4_test/w.mat'))) 
         waveDir = [0]
@@ -1171,10 +1171,10 @@ class TestBody(unittest.TestCase):
         np.testing.assert_allclose(self.body_4_1.hydroForce['fAddedMass'], result1)
        
     def test_forceAddedMass(self):
-        '''
+        """
         test forceAddedMAss
 
-        '''
+        """
         # random number test to confirm validity
         # B2B = 0 case
         B2B = 0
@@ -1196,10 +1196,10 @@ class TestBody(unittest.TestCase):
         np.testing.assert_allclose(fam, result1)
         
     def test_rotateXYZ(self):
-        '''
+        """
         test rotateXYZ
 
-        '''
+        """
         # random number test to confirm validity
         x = [1, 1, 1]
         ax = [4, 2, -1]
@@ -1217,10 +1217,10 @@ class TestBody(unittest.TestCase):
         np.testing.assert_allclose(xn, result2)
         
     def test_setInitDisp(self):
-        '''
+        """
         test setInitDisp
 
-        '''
+        """
         # random number test to confirm validity
         x_rot = np.array([1, 1, 1])
         ax_rot = np.array([4, 2, -1])
@@ -1249,5 +1249,5 @@ class TestBody(unittest.TestCase):
         result3 = [15]
         np.testing.assert_allclose(self.body_4_1.initDisp['initAngularDispAngle'], result3)
         
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

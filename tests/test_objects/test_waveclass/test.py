@@ -13,7 +13,12 @@ import os
 
 from waveclass import WaveClass
 
+global cwd # set current directory as global variabl
 cwd = os.getcwd()
+lastDir = os.path.split(cwd)[1]
+if lastDir == 'WEC-Sim-Python': # check if we are in desired directory
+    cwd = cwd + '/tests/test_objects/test_waveclass'
+    
 class TestWave(unittest.TestCase):
     
     def setUpClass():
@@ -146,18 +151,18 @@ class TestWave(unittest.TestCase):
         self.spectrumImport_1.phaseSeed = 1
         self.spectrumImport_1.freqDisc = 'Imported'
         self.spectrumImport_1.bemFreq = [5.19999512307279,0.0199999977946844]
-        self.spectrumImport_1.spectrumDataFile = cwd + "./testData/spectrumImport_1_test/spectrumData.txt"
+        self.spectrumImport_1.spectrumDataFile = cwd + '/testData/spectrumImport_1_test/spectrumData.txt'
         self.spectrumImport_1.setWavePhase()
-        result = np.array([np.conj(np.transpose(np.loadtxt("./testData/spectrumImport_1_test/phase.txt")))])
+        result = np.array([np.conj(np.transpose(np.loadtxt(cwd + '/testData/spectrumImport_1_test/phase.txt')))])
         self.assertIsNone(np.testing.assert_allclose(self.spectrumImport_1.phase, result))
         
         self.spectrumImport_2.waveDir = [0]
         self.spectrumImport_2.phaseSeed = 1
         self.spectrumImport_2.freqDisc = 'Imported'
         self.spectrumImport_2.bemFreq = [5.19999512307279,0.0199999977946844]
-        self.spectrumImport_2.spectrumDataFile = "./testData/spectrumImport_1_test/spectrumData.mat"
+        self.spectrumImport_2.spectrumDataFile = cwd + '/testData/spectrumImport_1_test/spectrumData.mat'
         self.spectrumImport_2.setWavePhase()
-        result = np.array([np.conj(np.transpose(np.loadtxt("./testData/spectrumImport_1_test/phase.txt")))])
+        result = np.array([np.conj(np.transpose(np.loadtxt(cwd + '/testData/spectrumImport_1_test/phase.txt')))])
         self.assertIsNone(np.testing.assert_allclose(self.spectrumImport_2.phase, result))
         
     def test_waveNumber(self):
@@ -195,10 +200,10 @@ class TestWave(unittest.TestCase):
         self.assertIsNone(np.testing.assert_allclose(self.irregular_2.k, result))
         
         # g = 9.81
-        self.spectrumImport_1.w = np.conj(np.transpose(np.loadtxt("./testData/spectrumImport_1_test/w.txt")))
+        self.spectrumImport_1.w = np.conj(np.transpose(np.loadtxt(cwd + '/testData/spectrumImport_1_test/w.txt')))
         self.spectrumImport_1.deepWaterWave = 1
         self.spectrumImport_1.waveNumber(g)
-        result =  np.conj(np.transpose(np.loadtxt("./testData/spectrumImport_1_test/k.txt"))) 
+        result =  np.conj(np.transpose(np.loadtxt(cwd + '/testData/spectrumImport_1_test/k.txt'))) 
         self.assertIsNone(np.testing.assert_allclose(self.spectrumImport_1.k, result))
         
         
@@ -265,19 +270,19 @@ class TestWave(unittest.TestCase):
         # g = 9.81
         # rho = 1000
         self.spectrumImport_1.freqDisc = 'Imported'
-        self.spectrumImport_1.w = np.conj(np.transpose(np.loadtxt("./testData/spectrumImport_1_test/w.txt")))
-        self.spectrumImport_1.spectrumDataFile = "./testData/spectrumImport_1_test/spectrumData.txt"
+        self.spectrumImport_1.w = np.conj(np.transpose(np.loadtxt(cwd + '/testData/spectrumImport_1_test/w.txt')))
+        self.spectrumImport_1.spectrumDataFile = cwd + '/testData/spectrumImport_1_test/spectrumData.txt'
         self.spectrumImport_1.H = 0
         self.spectrumImport_1.T = 0
         self.spectrumImport_1.spectrumType = 'spectrumImport'
         self.spectrumImport_1.bemFreq = [5.19999512307279,0.0199999977946844]
         self.spectrumImport_1.deepWaterWave = 1
-        self.spectrumImport_1.dw = np.conj(np.transpose(np.loadtxt("./testData/spectrumImport_1_test/dw.txt")))
-        self.spectrumImport_1.phase = np.conj(np.transpose(np.loadtxt("./testData/spectrumImport_1_test/phase.txt")))
+        self.spectrumImport_1.dw = np.conj(np.transpose(np.loadtxt(cwd + '/testData/spectrumImport_1_test/dw.txt')))
+        self.spectrumImport_1.phase = np.conj(np.transpose(np.loadtxt(cwd + '/testData/spectrumImport_1_test/phase.txt')))
         self.spectrumImport_1.irregWaveSpectrum(g,rho)
-        result1 = np.conj(np.transpose(np.loadtxt("./testData/spectrumImport_1_test/S.txt")))
+        result1 = np.conj(np.transpose(np.loadtxt(cwd + '/testData/spectrumImport_1_test/S.txt')))
         self.assertIsNone(np.testing.assert_allclose(self.spectrumImport_1.S, result1))
-        result2 = np.conj(np.transpose(np.loadtxt("./testData/spectrumImport_1_test/A.txt")))
+        result2 = np.conj(np.transpose(np.loadtxt(cwd + '/testData/spectrumImport_1_test/A.txt')))
         self.assertIsNone(np.testing.assert_allclose(self.spectrumImport_1.A, result2))
         self.assertIsNone(np.testing.assert_allclose(self.spectrumImport_1.Pw, [65833.3074598130]))
         
@@ -364,18 +369,18 @@ class TestWave(unittest.TestCase):
         rampTime = 100
         dt = 0.1
         maxIt = 2000
-        df = np.conj(np.transpose(np.loadtxt("./testData/spectrumImport_1_test/dw.txt")))
+        df = np.conj(np.transpose(np.loadtxt(cwd + '/testData/spectrumImport_1_test/dw.txt')))
         self.spectrumImport_1.waveDir = [0]
-        self.spectrumImport_1.A = np.conj(np.transpose(np.loadtxt("./testData/spectrumImport_1_test/A.txt")))
+        self.spectrumImport_1.A = np.conj(np.transpose(np.loadtxt(cwd + '/testData/spectrumImport_1_test/A.txt')))
         self.spectrumImport_1.waveSpread = [1]
-        self.spectrumImport_1.w = np.conj(np.transpose(np.loadtxt("./testData/spectrumImport_1_test/w.txt")))
-        self.spectrumImport_1.phase = np.array([np.conj(np.transpose(np.loadtxt("./testData/spectrumImport_1_test/phase.txt")))])
-        self.spectrumImport_1.k = np.conj(np.transpose(np.loadtxt("./testData/spectrumImport_1_test/k.txt")))
+        self.spectrumImport_1.w = np.conj(np.transpose(np.loadtxt(cwd + '/testData/spectrumImport_1_test/w.txt')))
+        self.spectrumImport_1.phase = np.array([np.conj(np.transpose(np.loadtxt(cwd + '/testData/spectrumImport_1_test/phase.txt')))])
+        self.spectrumImport_1.k = np.conj(np.transpose(np.loadtxt(cwd + '/testData/spectrumImport_1_test/k.txt')))
         self.spectrumImport_1.wavegauge1loc = [0,0]
         self.spectrumImport_1.wavegauge2loc = [0,0]
         self.spectrumImport_1.wavegauge3loc = [0,0]
         self.spectrumImport_1.waveElevIrreg(rampTime, dt, maxIt, df)
-        result = np.conj(np.transpose(np.loadtxt("./testData/spectrumImport_1_test/waveAmpTime.txt")))
+        result = np.conj(np.transpose(np.loadtxt(cwd + '/testData/spectrumImport_1_test/waveAmpTime.txt')))
         self.assertIsNone(np.testing.assert_allclose(self.spectrumImport_1.waveAmpTime, result))
         
         
@@ -388,9 +393,9 @@ class TestWave(unittest.TestCase):
         maxIt = 4000
         endTime = 400
         t = np.arange(0,endTime+dt,dt) 
-        data = np.conj(np.transpose(np.loadtxt("./testData/etaImport_1_test/etaData.txt")))
+        data = np.conj(np.transpose(np.loadtxt(cwd + '/testData/etaImport_1_test/etaData.txt')))
         self.etaImport_1.waveElevUser(rampTime,dt,maxIt,data,t)
-        result = np.conj(np.transpose(np.loadtxt("./testData/etaImport_1_test/waveAmpTime.txt")))
+        result = np.conj(np.transpose(np.loadtxt(cwd + '/testData/etaImport_1_test/waveAmpTime.txt')))
         self.assertIsNone(np.testing.assert_allclose(self.etaImport_1.waveAmpTime, result))
         
         
@@ -614,7 +619,7 @@ class TestWave(unittest.TestCase):
         # rho = 1000
         endTime = 400
         self.spectrumImport_1.freqRange = []
-        self.spectrumImport_1.spectrumDataFile = "./testData/spectrumImport_1_test/spectrumData.txt"
+        self.spectrumImport_1.spectrumDataFile = cwd + '/testData/spectrumImport_1_test/spectrumData.txt'
         self.spectrumImport_1.phaseSeed = 1
         self.spectrumImport_1.waveDir = [0]
         self.spectrumImport_1.waveSpread = [1]
@@ -635,9 +640,9 @@ class TestWave(unittest.TestCase):
         # endTime = 400
         self.etaImport_1.etaDataFile = './testData/etaImport_1_test/etaData.txt'
         self.etaImport_1.waveSetup(bemFreq,wDepth,rampTime,dt,maxIt,g, rho, endTime)
-        result1 = np.conj(np.transpose(np.loadtxt("./testData/etaImport_1_test/waveAmpTime.txt")))
+        result1 = np.conj(np.transpose(np.loadtxt(cwd + '/testData/etaImport_1_test/waveAmpTime.txt')))
         self.assertIsNone(np.testing.assert_allclose(self.etaImport_1.waveAmpTime, result1))
-        result2 = np.conj(np.transpose(np.loadtxt("./testData/etaImport_1_test/waveAmpTime1.txt")))
+        result2 = np.conj(np.transpose(np.loadtxt(cwd + '/testData/etaImport_1_test/waveAmpTime1.txt')))
         self.assertIsNone(np.testing.assert_allclose(self.etaImport_1.waveAmpTime1, result2))
         
         # bemFreq = [5.19999512307279,0.0199999977946844]
@@ -650,10 +655,10 @@ class TestWave(unittest.TestCase):
         # endTime = 400
         self.etaImport_2.etaDataFile = './testData/etaImport_1_test/etaData.mat'
         self.etaImport_2.waveSetup(bemFreq,wDepth,rampTime,dt,maxIt,g, rho, endTime)
-        result1 = np.conj(np.transpose(np.loadtxt("./testData/etaImport_1_test/waveAmpTime.txt")))
+        result1 = np.conj(np.transpose(np.loadtxt(cwd + '/testData/etaImport_1_test/waveAmpTime.txt')))
         self.assertIsNone(np.testing.assert_allclose(self.etaImport_2.waveAmpTime, result1))
-        result2 = np.conj(np.transpose(np.loadtxt("./testData/etaImport_1_test/waveAmpTime1.txt")))
+        result2 = np.conj(np.transpose(np.loadtxt(cwd + '/testData/etaImport_1_test/waveAmpTime1.txt')))
         self.assertIsNone(np.testing.assert_allclose(self.etaImport_2.waveAmpTime1, result2))
         
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
