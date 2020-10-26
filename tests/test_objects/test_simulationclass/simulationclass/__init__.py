@@ -9,13 +9,14 @@ This code is written based on WEC-sim.
 wonsungjun0000@gmail.com
 
 """
+import numpy as np
 import datetime
 import os
+import warnings
 
 class SimulationClass:
     # This class contains WEC-Sim simulation parameters and settings
     def inputProperties(self):
-        self.simMechanicsFile    = 'NOT DEFINED'                                # (`string`) Simulink/SimMecahnics model file. Default = ``'NOT DEFINED'``
         self.startTime           = 0                                            # (`float`) Simulation start time. Default = ``0`` s
         self.rampTime            = 100                                          # (`float`) Ramp time for wave forcing. Default = ``100`` s
         self.endTime             = []                                           # (`float`) Simulation end time. Default = ``'NOT DEFINED'``
@@ -49,11 +50,10 @@ class SimulationClass:
         self.morisonElement     = 0                                             # (`integer`) Option for Morrison Element calculation: off->0, on->1. Default = ``0``
         self.outputtxt           = 0                                            # (`integer`) Option to save results as ASCII files off->0, on->1. Default = ``0``
         self.reloadH5Data        = 0                                            # (`integer`) Option to re-load hydro data from hf5 file between runs: off->0, on->1. Default = ``0``
-        self.saveMat             = 1                                            # (`integer`) Option to save .mat file for each run: off->0, on->1. Default = ``1``
         self.pressureDis         = 0                                            # (`integer`) Option to save pressure distribution: off->0, on->1. Default = ``0``
 
     def internalProperties(self):
-        self.version             = '4.0'                                        # (`string`) WEC-Sim version
+        self.version             = '4.0'                                        # (`string`) WEC-Sim-Python version
         self.simulationDate      = datetime.datetime.now()                                    # (`string`) Simulation date and time
         self.outputDir           = 'output'                                     # (`string`) Data output directory name. Default = ``'output'``
         self.time                = 0                                            # (`float`) Simulation time [s]. Default = ``0`` s
@@ -68,9 +68,16 @@ class SimulationClass:
         self.numPtos             = []                                           # (`integer`) Number of power take-off elements in the model. Default = ``'NOT DEFINED'``
         self.numConstraints      = []                                           # (`integer`) Number of contraints in the wec model. Default = ``'NOT DEFINED'``
         self.numMoorings         = []                                           # (`integer`) Number of moorings in the wec model. Default = ``'NOT DEFINED'``
+    
+    def __init__(self):
+        """
+        Initialize Simulation Class
+        Returns
+        -------
+        None.
 
-    def simulationClass(self):
-        # This method initializes the ``simulationClass``.
+        """
+        self.internalProperties()
         print('WEC-Sim: An open-source code for simulating wave energy converters\n')
         print('Version: ', self.version,'\n\n')
         print('Initializing the Simulation Class...\n')
@@ -78,122 +85,86 @@ class SimulationClass:
         self.caseDir = os.getcwd()
         print('\tCase Dir: ',self.caseDir,' \n')
         self.outputDir = ['.' ,'/', self.outputDir]
-    
-"""
-    def obj = loadSimMechModel(obj,fName)
-        # This method loads the simulink model and sets parameters
-        # 
-        # Parameters
-        # ------------
-        #   fname : string
-        #       the name of the SimMechanics ``.slx`` file
-        #
-        
-        load_system(fName);
-             obj.simMechanicsFile = fName;
-             [~,modelName,~] = fileparts(obj.simMechanicsFile);
-             set_param(modelName,'Solver',obj.solver,...
-             'StopTime',num2str(obj.endTime),...
-             'SimulationMode',obj.mode,...
-             'StartTime',num2str(obj.startTime),...
-             'FixedStep',num2str(obj.dt),...
-             'MaxStep',num2str(obj.dt),...
-             'AutoInsertRateTranBlk',obj.autoRateTranBlk,...
-             'ZeroCrossControl',obj.zeroCrossCont,...
-             'SimCompilerOptimization','on',...            
-             'ReturnWorkspaceOutputs','off',...
-             'SimMechanicsOpenEditorOnUpdate',obj.explorer);
-    
 
-    def setupSim(obj)
+    def setupSim(self):
+        """
+        Set up simulation property for WEC-Sim-Python
+        """
         # Sets simulation properties based on values specified in input file
-        obj.time = obj.startTime:obj.dt:obj.endTime;
-        obj.maxIt = floor((obj.endTime - obj.startTime) / obj.dt);
+        self.time = np.arange(self.startTime,self.endTime+1,self.dt)
+        self.maxIt = np.floor((self.endTime - self.startTime) / self.dt)
         # Set dtOut if it was not specificed in input file
-        if isempty(obj.dtOut) || obj.dtOut < obj.dt
-            obj.dtOut = obj.dt;
+        if self.dtOut is None or self.dtOut < self.dt:
+            self.dtOut = self.dt
         
         # Set dtNL if it was not specificed in input file
-        if isempty(obj.dtNL) || obj.dtNL < obj.dt
-            obj.dtNL = obj.dt;
+        if self.dtNL is None or self.dtNL < self.dt:
+            self.dtNL = self.dt
         
         # Set dtCITime if it was not specificed in input file
-        if isempty(obj.dtCITime) || obj.dtCITime < obj.dt
-            obj.dtCITime = obj.dt;
+        if self.dtCITime is None or self.dtCITime < self.dt:
+            self.dtCITime = self.dt
         
         # Set dtME if it was not specificed in input file
-        if isempty(obj.dtME) || obj.dtME < obj.dt
-            obj.dtME = obj.dt;
+        if self.dtME is None or self.dtME < self.dt:
+            self.dtME = self.dt
                     
-        obj.CTTime = 0:obj.dtCITime:obj.CITime;            
-        obj.CIkt = length(obj.CTTime);
-        obj.caseFile = [obj.caseDir filesep 'output' filesep obj.simMechanicsFile(1:end-4) '_matlabWorkspace.mat'];
-        obj.logFile = [obj.caseDir filesep 'output' filesep obj.simMechanicsFile(1:end-4) '_simulationLog.txt'];
-        mkdir(obj.outputDir)
-        obj.getWecSimVer;
+        self.CTTime = np.arange(0,self.CITime+1,self.dtCITime)            
+        self.CIkt = np.size(self.CTTime)
+        #self.caseFile = [obj.caseDir filesep 'output' filesep obj.simMechanicsFile(1:end-4) '_matlabWorkspace.mat'];
+        #self.logFile = [obj.caseDir filesep 'output' filesep obj.simMechanicsFile(1:end-4) '_simulationLog.txt'];
+        os.mkdir(self.outputDir)
+        self.getWecSimPythonVer()
     
 
-    def checkinputs(obj)
-        # Checks user input to ensure that ``simu.endTime`` is specified and that the SimMechanics model exists
+    def checkinputs(self):
+        """
+        Checks user input to ensure that ``simu.endTime`` is specified
+        """        
+        if self.endTime is None:
+            warnings.warn('simu.endTime, the simulation end time must be specified in the wecSimInputFile')
+
+    def rhoDensitySetup(self,rho,g):
+        """
+        Assigns density and gravity values
         
-        if isempty(obj.endTime)
-            error('simu.endTime, the simulation end time must be specified in the wecSimInputFile')
-                    
-        # Check simMechanics file exists
-        if exist(obj.simMechanicsFile,'file') ~= 4
-            error('The simMechanics file, #s, does not exist in the case directory',value)
-        
-        # Remove existing output folder
-        if exist(obj.outputDir,'dir') ~= 0
-            try
-                rmdir(obj.outputDir,'s')
-            catch
-                warning('The output directory could not be removed. Please close any files in the output directory and try running WEC-Sim again')
+        Parameters
+        ------------
+          rho : float
+              density of the fluid medium (kg/m^3)
+          g : float
+              gravitational acceleration constant (m/s^2)
+        """
+        self.rho = rho
+        self.g   = g
+    
+
+    def listInfo(self,waveTypeNum):
+        """
+        List simulation info
+
+        """
+        print("\nWEC-Sim Simulation Settings:\n");
+        # print("\tTime Marching Solver                 = Fourth-Order Runge-Kutta Formula \n")
+        print("\tStart Time                     (sec) = ",self.startTime,"\n")
+        print("\tEnd Time                       (sec) = ",self.endTime,"\n")
+        print("\tTime Step Size                 (sec) = ",self.dt,"\n")
+        print("\tRamp Function Time             (sec) = ",self.rampTime,"\n")
+        if waveTypeNum > 10:
             
+            print("\tConvolution Integral Interval  (sec) = ",self.CITime,"\n")
         
+        print("\tTotal Number of Time Steps           = ",self.maxIt,"\n")
     
 
-    def rhoDensitySetup(obj,rho,g)
-        # Assigns density and gravity values
-        #
-        # Parameters
-        # ------------
-        #   rho : float
-        #       density of the fluid medium (kg/m^3)
-        #   g : float
-        #       gravitational acceleration constant (m/s^2)
-        #
-        obj.rho = rho;
-        obj.g   = g;
-    
-
-    def listInfo(obj,waveTypeNum)
-        # Lists simulation info
-        fprintf('\nWEC-Sim Simulation Settings:\n');
-        #fprintf('\tTime Marching Solver                 = Fourth-Order Runge-Kutta Formula \n')
-        fprintf('\tStart Time                     (sec) = #G\n',obj.startTime)
-        fprintf('\tEnd Time                       (sec) = #G\n',obj.endTime)
-        fprintf('\tTime Step Size                 (sec) = #G\n',obj.dt)
-        fprintf('\tRamp Function Time             (sec) = #G\n',obj.rampTime)
-        if waveTypeNum > 10
-            fprintf('\tConvolution Integral Interval  (sec) = #G\n',obj.CITime)
+    def getWecSimPythonVer(self):
+        """
+        Determines WEC-Sim version used
+        """
         
-        fprintf('\tTotal Number of Time Steps           = #u \n',obj.maxIt)
-    
-
-    def getWecSimVer(obj)
-        # Determines WEC-Sim version used
-        try
-            ws_exe = which('wecSim');
-            ws_dir = fileparts(ws_exe);
-            git_ver_file = [ws_dir '/../.git/refs/heads/master'];
-            obj.version = textread(git_ver_file,'#s');
-        catch
-            obj.version = 'No git version available';
+        # ws_exe = which('wecSim');
+        # ws_dir = fileparts(ws_exe);
+        # git_ver_file = [ws_dir '/../.git/refs/heads/master'];
+        # self.version = textread(git_ver_file,'#s')
         
-        
-    
-
-
-"""
-
+        self.version = 'No git version available'

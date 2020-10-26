@@ -7,9 +7,9 @@
 ## Build Status
 **Note: WEC-Sim-Python has not been completed.** Estimated date of completion: **February, 2021**
 ### Currently supports
+- [x] Simulation class: getWecSimPythonVer will be tested upon pre-release
 - [x] Wave class
 - [x] Body class
-- [x] Simulation class: loadSimMechModel test
 ### Future update
 - [ ] Other source class and BEMIO 
 - [ ] Open AI Gym for simulation
