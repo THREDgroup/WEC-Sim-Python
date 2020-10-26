@@ -138,7 +138,7 @@ fprintf('\nWEC-Sim Pre-processing ...   \n');
 % simulation setup
 simu.setupSim;
 
-
+%
 % wave setup
 waves.waveSetup(body(1).hydroData.simulation_parameters.w, body(1).hydroData.simulation_parameters.water_depth, simu.rampTime, simu.dt, simu.maxIt, simu.g, simu.rho,  simu.endTime);
 % Check that waveDir and freq are within range of hydro data

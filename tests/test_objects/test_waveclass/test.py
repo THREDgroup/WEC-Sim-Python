@@ -392,7 +392,7 @@ class TestWave(unittest.TestCase):
         dt = 0.1
         maxIt = 4000
         endTime = 400
-        t = np.arange(0,endTime+dt,dt) 
+        t = arange_MATLAB(0,endTime+dt,dt) 
         data = np.conj(np.transpose(np.loadtxt(cwd + '/testData/etaImport_1_test/etaData.txt')))
         self.etaImport_1.waveElevUser(rampTime,dt,maxIt,data,t)
         result = np.conj(np.transpose(np.loadtxt(cwd + '/testData/etaImport_1_test/waveAmpTime.txt')))
@@ -659,6 +659,12 @@ class TestWave(unittest.TestCase):
         self.assertIsNone(np.testing.assert_allclose(self.etaImport_2.waveAmpTime, result1))
         result2 = np.conj(np.transpose(np.loadtxt(cwd + '/testData/etaImport_1_test/waveAmpTime1.txt')))
         self.assertIsNone(np.testing.assert_allclose(self.etaImport_2.waveAmpTime1, result2))
-        
+ 
+def arange_MATLAB(start, end, step):
+    """
+    Change np.arange to have same sequence as MATLAB when step is float
+    """
+    return step*np.arange(start/step, np.floor(end/step))
+
 if __name__ == "__main__":
     unittest.main()

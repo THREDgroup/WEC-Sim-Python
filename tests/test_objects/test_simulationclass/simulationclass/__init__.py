@@ -53,7 +53,7 @@ class SimulationClass:
         self.pressureDis         = 0                                            # (`integer`) Option to save pressure distribution: off->0, on->1. Default = ``0``
 
     def internalProperties(self):
-        self.version             = '4.0'                                        # (`string`) WEC-Sim-Python version
+        self.version             = '1.0'                                        # (`string`) WEC-Sim-Python version
         self.simulationDate      = datetime.datetime.now()                                    # (`string`) Simulation date and time
         self.outputDir           = 'output'                                     # (`string`) Data output directory name. Default = ``'output'``
         self.time                = 0                                            # (`float`) Simulation time [s]. Default = ``0`` s
@@ -77,8 +77,9 @@ class SimulationClass:
         None.
 
         """
+        self.inputProperties()
         self.internalProperties()
-        print('WEC-Sim: An open-source code for simulating wave energy converters\n')
+        print('WEC-Sim-Python: An open-source code for simulating wave energy converters\n')
         print('Version: ', self.version,'\n\n')
         print('Initializing the Simulation Class...\n')
         global cwd # set current directory as global variabl
@@ -91,29 +92,29 @@ class SimulationClass:
         Set up simulation property for WEC-Sim-Python
         """
         # Sets simulation properties based on values specified in input file
-        self.time = np.arange(self.startTime,self.endTime+1,self.dt)
+        self.time = arange_MATLAB(self.startTime,self.endTime+self.dt,self.dt)
         self.maxIt = np.floor((self.endTime - self.startTime) / self.dt)
         # Set dtOut if it was not specificed in input file
-        if self.dtOut is None or self.dtOut < self.dt:
+        if self.dtOut == [] or self.dtOut < self.dt:
             self.dtOut = self.dt
         
         # Set dtNL if it was not specificed in input file
-        if self.dtNL is None or self.dtNL < self.dt:
+        if self.dtNL == [] or self.dtNL < self.dt:
             self.dtNL = self.dt
         
         # Set dtCITime if it was not specificed in input file
-        if self.dtCITime is None or self.dtCITime < self.dt:
+        if self.dtCITime == [] or self.dtCITime < self.dt:
             self.dtCITime = self.dt
-        
+            
         # Set dtME if it was not specificed in input file
-        if self.dtME is None or self.dtME < self.dt:
+        if self.dtME == [] or self.dtME < self.dt:
             self.dtME = self.dt
                     
-        self.CTTime = np.arange(0,self.CITime+1,self.dtCITime)            
+        self.CTTime = arange_MATLAB(0,self.CITime+self.dtCITime,self.dtCITime)            
         self.CIkt = np.size(self.CTTime)
         #self.caseFile = [obj.caseDir filesep 'output' filesep obj.simMechanicsFile(1:end-4) '_matlabWorkspace.mat'];
         #self.logFile = [obj.caseDir filesep 'output' filesep obj.simMechanicsFile(1:end-4) '_simulationLog.txt'];
-        os.mkdir(self.outputDir)
+        #os.mkdir(self.outputDir)
         self.getWecSimPythonVer()
     
 
@@ -121,7 +122,7 @@ class SimulationClass:
         """
         Checks user input to ensure that ``simu.endTime`` is specified
         """        
-        if self.endTime is None:
+        if self.endTime == []:
             warnings.warn('simu.endTime, the simulation end time must be specified in the wecSimInputFile')
 
     def rhoDensitySetup(self,rho,g):
@@ -151,9 +152,7 @@ class SimulationClass:
         print("\tTime Step Size                 (sec) = ",self.dt,"\n")
         print("\tRamp Function Time             (sec) = ",self.rampTime,"\n")
         if waveTypeNum > 10:
-            
             print("\tConvolution Integral Interval  (sec) = ",self.CITime,"\n")
-        
         print("\tTotal Number of Time Steps           = ",self.maxIt,"\n")
     
 
@@ -168,3 +167,9 @@ class SimulationClass:
         # self.version = textread(git_ver_file,'#s')
         
         self.version = 'No git version available'
+        
+def arange_MATLAB(start, end, step):
+    """
+    Change np.arange to have same sequence as MATLAB when step is float
+    """
+    return step*np.arange(np.floor(start/step), np.floor(end/step))

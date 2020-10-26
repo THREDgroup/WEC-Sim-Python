@@ -336,11 +336,11 @@ class WaveClass:
             if self.freqDisc == 'Traditional':    # Traditional method of computing. Refer to theory of waveclass provided by WEC-Sim to understand the theory.
                 if np.size(self.numFreq) == 0:  # numfreq for Traditional is 1000 for default
                     self.numFreq = 1000
-                self.w = np.arange(WFQSt,WFQEd+((WFQEd-WFQSt)/(self.numFreq-1)),(WFQEd-WFQSt)/(self.numFreq-1))
+                self.w = arange_MATLAB(WFQSt,WFQEd+((WFQEd-WFQSt)/(self.numFreq-1)),(WFQEd-WFQSt)/(self.numFreq-1))
                 self.dw = np.ones(shape=(self.numFreq,1))*(WFQEd-WFQSt)/(self.numFreq-1)
             elif self.freqDisc == 'EqualEnergy':    # Default way of computing irregular wave. Refer to theory of waveclass provided by WEC-Sim to understand the theory.
                 numFreq_interp = 500000     # number of interpolation that will set array size for SF and S_f used in irregWaveSpectrum method. Lowering this value might decrease the run time but accuracy will decrease
-                self.w = np.arange(WFQSt,WFQEd+((WFQEd-WFQSt)/numFreq_interp),(WFQEd-WFQSt)/numFreq_interp)
+                self.w = arange_MATLAB(WFQSt,WFQEd+((WFQEd-WFQSt)/numFreq_interp),(WFQEd-WFQSt)/numFreq_interp)
                 self.dw = np.mean(np.diff(self.w))
                 if np.size(self.numFreq) == 0:  # numfreq for EqualEnergy is 500 for default
                     self.numFreq = 500
@@ -361,7 +361,7 @@ class WaveClass:
         elif self.wType == 'etaImport':
             #Import 'etaImport' time-series here and interpolate
             data = self.readData(self.etaDataFile) #Import time-series
-            t = np.arange(0,endTime+dt,dt)      #simulation time
+            t = arange_MATLAB(0,endTime+dt,dt)      #simulation time
             self.waveElevUser(rampTime, dt, maxIt, data, t) # method called to set wave elevation
             t2 = np.arange(maxIt+1)*dt
             initialZeros = np.zeros((maxIt+1))
@@ -698,7 +698,7 @@ class WaveClass:
         maxRampIT = int(np.round(rampTime/dt))
         data_t = data[0]                    # Data Time [s]
         data_x = data[1]                    # Wave Surface Elevation [m] 
-        #t = np.arange(0,endTime+dt,dt)  
+        #t = arange_MATLAB(0,endTime+dt,dt)  
         self.waveAmpTime[0] = t
         self.waveAmpTime[1] = np.interp(t,data_t,data_x)
         if rampTime != 0:
@@ -778,3 +778,8 @@ class WaveClass:
         elif self.spectrumType == 'spectrumImport':
             print('\tSpectrum Type                        = Imported Spectrum \n')
             
+def arange_MATLAB(start, end, step):
+    """
+    Change np.arange to have same sequence as MATLAB when step is float
+    """
+    return step*np.arange(start/step, np.floor(end/step))

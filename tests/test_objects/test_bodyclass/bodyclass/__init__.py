@@ -536,7 +536,7 @@ class BodyClass:
         nDOF = int(self.dof[0])
         kf = self.hydroData['hydro_coeffs']['excitation']['impulse_response_fun']['f']*rho*g
         kt = self.hydroData['hydro_coeffs']['excitation']['impulse_response_fun']['t'][0]
-        t =  np.arange(np.min(kt),np.max(kt)+dt,dt)
+        t =  arange_MATLAB(np.min(kt),np.max(kt)+dt,dt)
         for ii in range(nDOF):
             if np.size(self.hydroData['simulation_parameters']['wave_dir']) > 1:
                 y = self.hydroData['simulation_parameters']['wave_dir'][0] 
@@ -759,4 +759,10 @@ class BodyClass:
         verts_out[1] = verts[1] + x[1]
         verts_out[2] = verts[2] + x[2]
         return verts_out
+
+def arange_MATLAB(start, end, step):
+    """
+    Change np.arange to have same sequence as MATLAB when step is float
+    """
+    return step*np.arange(start/step, np.floor(end/step))
     
