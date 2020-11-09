@@ -153,7 +153,7 @@ class BodyClass:
 
     def readH5file(self):
         """
-        Read and recond properties of h5 file in self.hydroData
+        Read and record properties of h5 file in self.hydroData
 
         """
         f = h5py.File(self.h5File, 'r')

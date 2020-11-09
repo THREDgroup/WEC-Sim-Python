@@ -56,7 +56,7 @@ class TestBody(unittest.TestCase):
         self.body_9_1 = BodyClass(cwd + '/testData/hydroData/rm3.h5') #regularcIC B2B_Case6:b2b = 1,ssCalc = 1
         self.body_9_2 = BodyClass(cwd + '/testData/hydroData/rm3.h5') #regularcIC B2B_Case6:b2b = 1,ssCalc = 1
         self.body_10_1 = BodyClass(cwd + '/testData/hydroData/ellipsoid.h5') #regular nlHydro = 2
-        
+                
     def tearDown(self):
         print("tearDown\n")
     
@@ -64,7 +64,7 @@ class TestBody(unittest.TestCase):
         """
         test hydroForcePre
 
-        """
+        """        
         print("hydroForcePre")
         # RM3 example from WEC-Sim
         # regularCIC
