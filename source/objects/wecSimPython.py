@@ -186,43 +186,53 @@ try:
     waves.numFreq
 except AttributeError:
     waves.numFreq = []
+
+for kk in range(simu.numWecBodies):
+    try: 
+        body[kk].hydroStiffness
+    except AttributeError:
+        body[kk].hydroStiffness = np.zeros((6, 6))
+    try: 
+        body[kk].viscDrag 
+    except AttributeError:
+        body[kk].viscDrag = {'Drag':np.zeros((6, 6)),'cd':np.zeros(6),'characteristicArea':np.zeros(6)}
+    try: 
+        body[kk].linearDamping 
+    except AttributeError:
+        body[kk].linearDamping = np.zeros((6, 6))
+    try: 
+        body[kk].mass
+    except AttributeError:
+        body[kk].mass = 'equilibrium'
+        
+
 for kk in range(simu.numWecBodies):
     body[kk].hydroForcePre(waves.w,waves.waveDir,simu.CIkt,simu.CTTime,waves.numFreq,simu.dt,
         simu.rho,simu.g,waves.wType,waves.waveAmpTime,kk,simu.numWecBodies,simu.ssCalc,simu.nlHydro,simu.b2b)
 
+# Check CITime
+if waves.typeNum != 0 and waves.typeNum != 10:
+    for iBod in range(simu.numWecBodies):
+        if simu.CITime > np.max(body[iBod].hydroData['hydro_coeffs']['radiation_damping']['impulse_response_fun']['t']):
+            warnings.warn('simu.CITime is larger than the length of the IRF')
 
-# # Check CITime
-# if waves.typeNum~=0 && waves.typeNum~=10
-#     for iBod = 1:simu.numWecBodies
-#         if simu.CITime > max(body(iBod).hydroData.hydro_coeffs.radiation_damping.impulse_response_fun.t)
-#             error('simu.CITime is larger than the length of the IRF');
-#         end
-#     end
-# end
 
-# # Check that the hydro data for each body is given for the same frequencies
-# for ii = 1:simu.numWecBodies
-#     if length(body(1).hydroData.simulation_parameters.w) ~= length(body(ii).hydroData.simulation_parameters.w)
-#         error('BEM simulations for each body must have the same number of frequencies')
-#     else
-#         for jj = 1:length(body(1).hydroData.simulation_parameters.w)
-#             if body(1).hydroData.simulation_parameters.w(jj) ~= body(ii).hydroData.simulation_parameters.w(jj)
-#                 error('BEM simulations must be run with the same frequencies.')
-#             end; clear jj;
-#         end
-#     end
-# end; clear ii;
+# Check that the hydro data for each body is given for the same frequencies
+for ii in range(simu.numWecBodies):
+    if np.size(body[1].hydroData['simulation_parameters']['w']) != np.size(body[ii].hydroData['simulation_parameters']['w']):
+        warnings.warn('BEM simulations for each body must have the same number of frequencies')
+    else:
+        for jj in range(np.size(body[1].hydroData['simulation_parameters']['w'])):
+            if body[1].hydroData['simulation_parameters']['w'].all() != body[ii].hydroData['simulation_parameters']['w'].all():
+                warnings.warn('BEM simulations must be run with the same frequencies.')
 
-# # check for etaImport with nlHydro
-# if strcmp(waves.type,'etaImport') && simu.nlHydro == 1
-#     error(['Cannot run WEC-Sim with non-linear hydro (simu.nlHydro) and "etaImport" wave type'])
-# end
+# check for etaImport with nlHydro
+if waves.wType == 'etaImport' and simu.nlHydro == 1:
+    warnings.warn('Cannot run WEC-Sim with non-linear hydro (simu.nlHydro) and "etaImport" wave type')
 
-# # check for etaImport with morisonElement
-# if strcmp(waves.type,'etaImport') && simu.morisonElement == 1
-#     error(['Cannot run WEC-Sim with Morrison Element (simu.morisonElement) and "etaImport" wave type'])
-# end
-
+# check for etaImport with morisonElement
+if waves.wType == 'etaImport' and simu.morisonElement == 1:
+    warnings.warn('Cannot run WEC-Sim with Morrison Element (simu.morisonElement) and "etaImport" wave type')
 
 # ## Set variant subsystems options
 # nlHydro = simu.nlHydro;
