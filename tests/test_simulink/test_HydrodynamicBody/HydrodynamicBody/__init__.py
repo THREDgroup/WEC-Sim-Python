@@ -10,8 +10,8 @@ wonsungjun0000@gmail.com
 
 """
 import numpy as np
-import os
-import warnings
+import NonlinearFKForceVarientSubsystemClass
+import LinearWaveExcitationForceVarientSubsystemClass
 
 def arange_MATLAB(start, end, step):
     """
@@ -19,65 +19,57 @@ def arange_MATLAB(start, end, step):
     """
     return step*np.arange(np.floor(start/step), np.floor(end/step))
 
-class SimulationClass:
-    # This class contains WEC-Sim simulation parameters and settings
-    def inputProperties(self):
-        
-        self.pressureDis         = 0                                            # (`integer`) Option to save pressure distribution: off->0, on->1. Default = ``0``
-
-    def internalProperties(self):
-        self.version             = '1.0'                                        # (`string`) WEC-Sim-Python version
-        
-    def __init__(self):
+class HydrodynamicBodyClass:
+    def rampFunction(time,rampTime):
         """
-        Initialize Simulink Class
+        
+
+        Parameters
+        ----------
+        time : TYPE
+            DESCRIPTION.
+        rampTime : TYPE
+            DESCRIPTION.
+
         Returns
         -------
         None.
 
         """
-        self.inputProperties()
-        self.internalProperties()
-        print('WEC-Sim-Python: An open-source code for simulating wave energy converters\n')
-        self.caseDir = os.getcwd()
-        print('\tCase Dir: ',self.caseDir,' \n')
+        frequency = np.pi / rampTime
+        t = time * frequency + 3*np.pi/2
+        r = 0.5 * (1+np.sin(t))
+        return(r)
+        
+    def waveDiffractionAndExcitationForceCalculation(rampTime,time,displacement,waveElv):
+        """
+        
 
-    def setupSim(self):
-        """
-        Set up simulation property for WEC-Sim-Python
-        """
-        # Sets simulation properties based on values specified in input file
-        self.time = arange_MATLAB(self.startTime,self.endTime+self.dt,self.dt)
-        
-class SimulationClass:
-    # This class contains WEC-Sim simulation parameters and settings
-    def inputProperties(self):
-        
-        self.pressureDis         = 0                                            # (`integer`) Option to save pressure distribution: off->0, on->1. Default = ``0``
+        Parameters
+        ----------
+        rampTime : TYPE
+            DESCRIPTION.
+        time : TYPE
+            DESCRIPTION.
+        displacement : TYPE
+            DESCRIPTION.
+        waveElv : TYPE
+            DESCRIPTION.
 
-    def internalProperties(self):
-        self.version             = '1.0'                                        # (`string`) WEC-Sim-Python version
-        
-    def __init__(self):
-        """
-        Initialize Simulink Class
         Returns
         -------
         None.
 
         """
-        self.inputProperties()
-        self.internalProperties()
-        print('WEC-Sim-Python: An open-source code for simulating wave energy converters\n')
-        self.caseDir = os.getcwd()
-        print('\tCase Dir: ',self.caseDir,' \n')
-
-    def setupSim(self):
-        """
-        Set up simulation property for WEC-Sim-Python
-        """
-        # Sets simulation properties based on values specified in input file
-        self.time = arange_MATLAB(self.startTime,self.endTime+self.dt,self.dt)
-
-   
-        
+        for i in range(np.size(time)):
+            if(time[i] < rampTime[i]):
+                R = rampFunction(time[i],rampTime[i])
+            else:
+                R = 1 
+        fWave1 = withNonlinearFroudeKrylovForce(displacement,hydroData_properties_cg,dof,elv,center,tnorm,area,rho,g,cg,AH,w,dw,wDepth,deepWaterWave,k,typeNum,t,phaseRand)
+        if wType = 'regularWave':
+            fWave2 = regularWaveExcitationForce(time,A,w,hydroForce_fExt_md,hydroForce_fExt_re,hydroForce_fExt_im)
+        elif wType = 'irregularWave':     
+            fWave2 = irregularWaveExcitationForce(A,w,fExtRE,fExtIM,phaseRand,dw,time,WaveDir,WaveSpread,fExtMD)
+        fWave = fWave1 + fWave2
+        fExcitation = fWave * R
