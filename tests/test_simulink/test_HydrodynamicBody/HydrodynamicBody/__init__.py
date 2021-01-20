@@ -10,8 +10,8 @@ wonsungjun0000@gmail.com
 
 """
 import numpy as np
-import NonlinearFKForceVarientSubsystemClass
-import LinearWaveExcitationForceVarientSubsystemClass
+from WaveDiffractionAndExcitationForceCalculation import NonlinearFKForceVarientSubsystemClass
+from WaveDiffractionAndExcitationForceCalculation import LinearWaveExcitationForceVarientSubsystemClass
 
 def arange_MATLAB(start, end, step):
     """
@@ -67,9 +67,17 @@ class HydrodynamicBodyClass:
             else:
                 R = 1 
         fWave1 = withNonlinearFroudeKrylovForce(displacement,hydroData_properties_cg,dof,elv,center,tnorm,area,rho,g,cg,AH,w,dw,wDepth,deepWaterWave,k,typeNum,t,phaseRand)
-        if wType = 'regularWave':
+        if wType == 'noWave' and simu.yawNonLin == 1:
+            fWave2 = noWaveExcitationForce(dof)            
+        elif wType == 'regularWave' and simu.yawNonLin == 1:
             fWave2 = regularWaveExcitationForce(time,A,w,hydroForce_fExt_md,hydroForce_fExt_re,hydroForce_fExt_im)
-        elif wType = 'irregularWave':     
+        elif wType == 'regularWave' and simu.yawNonLin != 1:
+            fWave2 = regularWaveNonLinearYaw(A,w,dofGRD,dirGRD,fEHRE,fEHIM, fEHMD,time,WaveDir,Disp, intThresh, prevYaw, prevCoeffMD, prevCoeffRE, prevCoeffIM)
+        elif wType == 'irregularWave' and simu.yawNonLin == 1:     
             fWave2 = irregularWaveExcitationForce(A,w,fExtRE,fExtIM,phaseRand,dw,time,WaveDir,WaveSpread,fExtMD)
+        elif wType == 'irregularWave' and simu.yawNonLin != 1:
+            fWave2 = irregularWaveNonLinearYaw(A,w,dofGRD,dirGRD,wGRD,fEHRE,fEHIM, fEHMD, phaseRand,dw,time,WaveDir,WaveSpread, Disp, intThresh, prevYaw, prevCoeffMD, prevCoeffRE, prevCoeffIM)
         fWave = fWave1 + fWave2
         fExcitation = fWave * R
+        
+        
