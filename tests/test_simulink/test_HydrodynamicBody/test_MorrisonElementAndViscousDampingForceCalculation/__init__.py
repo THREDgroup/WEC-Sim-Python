@@ -22,4 +22,5 @@ class MorrisonElementAndViscousDampingForceCalculationClass:
     # This class contains WEC-Sim simulation parameters and settings
     def constantCoefficients(fDamping,inputA):
         """
+        """
        
