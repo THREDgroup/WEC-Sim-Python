@@ -23,7 +23,7 @@ jobs:
       os: osx
       osx_image: xcode9.4
       language: shell
-      env: PYTHON=36
+      #env: PYTHON=36
       # command to install Git LFS
       before_install:
       - brew install git-lfs
