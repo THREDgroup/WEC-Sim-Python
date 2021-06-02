@@ -19,11 +19,11 @@ jobs:
       # command to run tests
       script: python ./tests/test_objects/test_waveclass/test.py
       script: python ./tests/test_objects/test_bodyclass/test.py
-    - name: "Python 3.6.5 on macOS 10.13"
+    - name: "Python 3.6 on Mac"
       os: osx
-      osx_image: xcode9.4
+      osx_image: xcode10.1
       language: shell
-      #env: PYTHON=36
+      env: PYTHON=36
       # command to install Git LFS
       before_install:
       - brew install git-lfs
