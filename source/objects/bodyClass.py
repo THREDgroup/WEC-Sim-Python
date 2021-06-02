@@ -148,6 +148,7 @@ class BodyClass:
         """
         self.bodyGeometryFileProperties()
         self.internalProperties(filename)
+        self.inputFileProperties()
         self.hdf5FileProperties()
         self.meanDriftForce = 0
 
