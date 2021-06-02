@@ -422,7 +422,7 @@ class TestWave(unittest.TestCase):
         endTime = 200
         self.noWave_1.T = np.array([8])
         self.noWave_1.waveSetup(bemFreq,wDepth,rampTime,dt,maxIt,g, rho, endTime)
-        result1=  np.conj(np.transpose(np.array(np.loadtxt('./testData/noWave_1_test/waveAmpTime.txt'))))
+        result1=  np.conj(np.transpose(np.array(np.loadtxt(cwd + '/testData/noWave_1_test/waveAmpTime.txt'))))
         self.assertIsNone(np.testing.assert_allclose(self.noWave_1.waveAmpTime, result1))
         result2 =  [0.785398163397448]
         self.assertIsNone(np.testing.assert_allclose(self.noWave_1.w, result2))
@@ -445,13 +445,13 @@ class TestWave(unittest.TestCase):
         self.regular_1.wavegauge3loc = [0,-10]
         self.regular_1.waveDir = [0]
         self.regular_1.waveSetup(bemFreq,wDepth,rampTime,dt,maxIt,g, rho, endTime)
-        result1 =  np.conj(np.transpose(np.array(np.loadtxt('./testData/regular_1_test/waveAmpTime.txt'))))
+        result1 =  np.conj(np.transpose(np.array(np.loadtxt(cwd + '/testData/regular_1_test/waveAmpTime.txt'))))
         self.assertIsNone(np.testing.assert_allclose(self.regular_1.waveAmpTime, result1))
-        result2 =  np.conj(np.transpose(np.array(np.loadtxt('./testData/regular_1_test/waveAmpTime1.txt'))))
+        result2 =  np.conj(np.transpose(np.array(np.loadtxt(cwd + '/testData/regular_1_test/waveAmpTime1.txt'))))
         self.assertIsNone(np.testing.assert_allclose(self.regular_1.waveAmpTime1, result2))
-        result3 =  np.conj(np.transpose(np.array(np.loadtxt('./testData/regular_1_test/waveAmpTime2.txt'))))
+        result3 =  np.conj(np.transpose(np.array(np.loadtxt(cwd + '/testData/regular_1_test/waveAmpTime2.txt'))))
         self.assertIsNone(np.testing.assert_allclose(self.regular_1.waveAmpTime2, result3))
-        result4 =  np.conj(np.transpose(np.array(np.loadtxt('./testData/regular_1_test/waveAmpTime3.txt'))))
+        result4 =  np.conj(np.transpose(np.array(np.loadtxt(cwd + '/testData/regular_1_test/waveAmpTime3.txt'))))
         self.assertIsNone(np.testing.assert_allclose(self.regular_1.waveAmpTime3, result4))
         result5 =  [0.785398163397448]
         self.assertIsNone(np.testing.assert_allclose(self.regular_1.w, result5))
@@ -474,7 +474,7 @@ class TestWave(unittest.TestCase):
         self.regularCIC_1.wavegauge3loc = [0,0]
         self.regularCIC_1.waveDir = [0]
         self.regularCIC_1.waveSetup(bemFreq,wDepth,rampTime,dt,maxIt,g, rho, endTime)
-        result1=  np.conj(np.transpose(np.array(np.loadtxt('./testData/regularCIC_1_test/waveAmpTime.txt'))))
+        result1=  np.conj(np.transpose(np.array(np.loadtxt(cwd + '/testData/regularCIC_1_test/waveAmpTime.txt'))))
         self.assertIsNone(np.testing.assert_allclose(self.regularCIC_1.waveAmpTime, result1))
         result2 =  [0.785398163397448]
         self.assertIsNone(np.testing.assert_allclose(self.regularCIC_1.w, result2))
@@ -501,13 +501,13 @@ class TestWave(unittest.TestCase):
         self.irregular_1.wavegauge2loc = [10,0]
         self.irregular_1.wavegauge3loc = [0,-10]
         self.irregular_1.waveSetup(bemFreq,wDepth,rampTime,dt,maxIt,g, rho, endTime)
-        result1 = np.conj(np.transpose(np.array(np.loadtxt('./testData/irregular_1_test/waveAmpTime.txt'))))
+        result1 = np.conj(np.transpose(np.array(np.loadtxt(cwd + '/testData/irregular_1_test/waveAmpTime.txt'))))
         self.assertIsNone(np.testing.assert_allclose(self.irregular_1.waveAmpTime, result1))
-        result2 = np.conj(np.transpose(np.array(np.loadtxt('./testData/irregular_1_test/waveAmpTime1.txt'))))
+        result2 = np.conj(np.transpose(np.array(np.loadtxt(cwd + '/testData/irregular_1_test/waveAmpTime1.txt'))))
         self.assertIsNone(np.testing.assert_allclose(self.irregular_1.waveAmpTime1, result2))
-        result3 = np.conj(np.transpose(np.array(np.loadtxt('./testData/irregular_1_test/waveAmpTime2.txt'))))
+        result3 = np.conj(np.transpose(np.array(np.loadtxt(cwd + '/testData/irregular_1_test/waveAmpTime2.txt'))))
         self.assertIsNone(np.testing.assert_allclose(self.irregular_1.waveAmpTime2, result3))
-        result4 = np.conj(np.transpose(np.array(np.loadtxt('./testData/irregular_1_test/waveAmpTime3.txt'))))
+        result4 = np.conj(np.transpose(np.array(np.loadtxt(cwd + '/testData/irregular_1_test/waveAmpTime3.txt'))))
         self.assertIsNone(np.testing.assert_allclose(self.irregular_1.waveAmpTime3, result4))
         
         bemFreq = [5.19999512307279,0.0199999977946844]
@@ -531,7 +531,7 @@ class TestWave(unittest.TestCase):
         self.irregular_2.wavegauge2loc = [0,0]
         self.irregular_2.wavegauge3loc = [0,0]
         self.irregular_2.waveSetup(bemFreq,wDepth,rampTime,dt,maxIt,g, rho, endTime)
-        result = np.conj(np.transpose(np.array(np.loadtxt('./testData/irregular_2_test/waveAmpTime.txt'))))
+        result = np.conj(np.transpose(np.array(np.loadtxt(cwd + '/testData/irregular_2_test/waveAmpTime.txt'))))
         self.assertIsNone(np.testing.assert_allclose(self.irregular_2.waveAmpTime, result))
         self.assertIsNone(np.testing.assert_allclose(self.irregular_2.Pw, 128939.416506839))
         
@@ -557,7 +557,7 @@ class TestWave(unittest.TestCase):
         self.irregular_3.wavegauge2loc = [0,0]
         self.irregular_3.wavegauge3loc = [0,0]
         self.irregular_3.waveSetup(bemFreq,wDepth,rampTime,dt,maxIt,g, rho, endTime)
-        result = np.conj(np.transpose(np.array(np.loadtxt('./testData/irregular_3_test/waveAmpTime.txt'))))
+        result = np.conj(np.transpose(np.array(np.loadtxt(cwd + '/testData/irregular_3_test/waveAmpTime.txt'))))
         self.assertIsNone(np.testing.assert_allclose(self.irregular_3.waveAmpTime, result))
         
         # bemFreq = np.array(np.loadtxt('irregular_1_test/bemFreq.txt')[0]
@@ -582,7 +582,7 @@ class TestWave(unittest.TestCase):
         self.irregular_4.wavegauge2loc = [0,0]
         self.irregular_4.wavegauge3loc = [0,0]
         self.irregular_4.waveSetup(bemFreq,wDepth,rampTime,dt,maxIt,g, rho, endTime)
-        result = np.conj(np.transpose(np.array(np.loadtxt('./testData/irregular_4_test/waveAmpTime.txt'))))
+        result = np.conj(np.transpose(np.array(np.loadtxt(cwd + '/testData/irregular_4_test/waveAmpTime.txt'))))
         self.assertIsNone(np.testing.assert_allclose(self.irregular_4.waveAmpTime, result))
         
         # bemFreq = [5.19999512307279,0.0199999977946844]
@@ -606,7 +606,7 @@ class TestWave(unittest.TestCase):
         self.irregular_5.wavegauge2loc = [0,0]
         self.irregular_5.wavegauge3loc = [0,0]
         self.irregular_5.waveSetup(bemFreq,wDepth,rampTime,dt,maxIt,g, rho, endTime)
-        result = np.conj(np.transpose(np.array(np.loadtxt('./testData/irregular_5_test/waveAmpTime.txt'))))
+        result = np.conj(np.transpose(np.array(np.loadtxt(cwd + '/testData/irregular_5_test/waveAmpTime.txt'))))
         self.assertIsNone(np.testing.assert_allclose(self.irregular_5.waveAmpTime, result))
         
         # wType = 'spectrumImport'
@@ -627,7 +627,7 @@ class TestWave(unittest.TestCase):
         self.spectrumImport_1.wavegauge2loc = [0,0]
         self.spectrumImport_1.wavegauge3loc = [0,0]
         self.spectrumImport_1.waveSetup(bemFreq,wDepth,rampTime,dt,maxIt,g, rho, endTime)
-        result =  np.conj(np.transpose(np.loadtxt('./testData/spectrumImport_1_test/waveAmpTime.txt')))
+        result =  np.conj(np.transpose(np.loadtxt(cwd + '/testData/spectrumImport_1_test/waveAmpTime.txt')))
         self.assertIsNone(np.testing.assert_allclose(self.spectrumImport_1.waveAmpTime, result))
         
         # bemFreq = [5.19999512307279,0.0199999977946844]
