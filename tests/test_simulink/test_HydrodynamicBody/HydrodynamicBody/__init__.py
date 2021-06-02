@@ -12,6 +12,7 @@ wonsungjun0000@gmail.com
 import numpy as np
 from WaveDiffractionAndExcitationForceCalculation import NonlinearFKForceVarientSubsystemClass
 from WaveDiffractionAndExcitationForceCalculation import LinearWaveExcitationForceVarientSubsystemClass
+from WaveRadiationForceCalculation import SSCIandConstantDampingCoeVariantSubsystemClass
 
 def arange_MATLAB(start, end, step):
     """
@@ -79,5 +80,27 @@ class HydrodynamicBodyClass:
             fWave2 = irregularWaveNonLinearYaw(A,w,dofGRD,dirGRD,wGRD,fEHRE,fEHIM, fEHMD, phaseRand,dw,time,WaveDir,WaveSpread, Disp, intThresh, prevYaw, prevCoeffMD, prevCoeffRE, prevCoeffIM)
         fWave = fWave1 + fWave2
         fExcitation = fWave * R
+    
+    def waveRadiationForceCalculation(velocity,time,acceleration):
+        """
+        
+
+        Parameters
+        ----------
+        velocity : TYPE
+            DESCRIPTION.
+        time : TYPE
+            DESCRIPTION.
+        acceleration : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+        F_RadiationDamping = constantCoefficients(velocity,time)
+        
+        F_AddedMass = fAddedMass * acceleration 
         
         

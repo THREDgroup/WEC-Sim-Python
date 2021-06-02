@@ -10,25 +10,101 @@ wonsungjun0000@gmail.com
 
 """
 import numpy as np
+import control
+
+def arange_MATLAB(start, end, step):
+    """
+    Change np.arange to have same sequence as MATLAB when step is float
+    """
+    return step*np.arange(np.floor(start/step), np.floor(end/step))
 
 class SSCIandConstantDampingCoeVariantSubsystemClass:
     # This class contains WEC-Sim simulation parameters and settings
-    def noWaveExcitationForce(dof):
+    def constantCoefficients(fDamping,inputA):
         """
-        Linear wave excitation for no wave condition.
+        Matrix multiplication
 
         Parameters
         ----------
-        dof : int
-            degree of freedom defined in body class
-            
+        fDamping : array
+            body_hydroForce_fDamping
+        inputA : array
+            DESCRIPTION.
+
         Returns
         -------
-        LE - array
-            array of zeros
+        outputA : array
+            F_Single Frequency
 
         """
-        LE = np.zeros(1,dof)
-        return(LE)
-    
+        outputA = inputA * fDamping
+        return(outputA)
+        
+        
+    def convolutionIntegeralCalculation(irkb,dof,CTTime,inputA,dof_gbm):
+        """
+        
+
+        Parameters
+        ----------
+        irkb : TYPE
+            body_hydroForce_irkb
+        dof : TYPE
+            body_dof
+        CTTime : TYPE
+            simu_CTTime
+        inputA : TYPE
+            v
+        dof_gbm : 
+            body_dof_gbm
+
+        Returns
+        -------
+        None.
+
+        """
+        v = inputA[:dof_gbm]
+        # Function to calculate convolution integral
+        
+        # define persistent variables
+        interp_factor = 1
+        
+        try: 
+            velocity
+        except AttributeError:
+            CTTime_interp  = arange_MATLAB(0, CTTime, interp_factor)
+            velocity       = np.zeros(lenJ,np.size(CTTime_interp))
+            IRKB_reordered = np.roll(irkb,1,1)                    # permutes from [601 6 12] to [12 601 6]
+            IRKB_interp    = IRKB_reordered[:,arange_MATLAB(0, irkb[0][-1], interp_factor), :]  # what does this do?
+        
+        # shift velocity
+        velocity      = np.roll(velocity,1,1)
+        velocity[0,:] = v
+        
+        # integrate
+        time_series = IRKB_interp * velocity
+        F_FM = np.squeeze(np.trapz(CTTime_interp,np.sum(time_series, 1)))
+        
+        def stateSpaceCalculation(A,B,C,D):
+        """
+        
+
+        Parameters
+        ----------
+        A : TYPE
+            body_hydroForce_ssRadf_A
+        B : TYPE
+            body_hydroForce_ssRadf_B
+        C : TYPE
+            body_hydroForce_ssRadf_C
+        D : TYPE
+            body_hydroForce_ssRadf_D
+
+        Returns
+        -------
+        OutputA
+
+        """
+        outputA = control.ss(A,B,C,D)
+        return(outputA)
     
