@@ -638,7 +638,7 @@ class TestWave(unittest.TestCase):
         # g = 9.81
         # rho = 1000
         # endTime = 400
-        self.etaImport_1.etaDataFile = './testData/etaImport_1_test/etaData.txt'
+        self.etaImport_1.etaDataFile = cwd + '/testData/etaImport_1_test/etaData.txt'
         self.etaImport_1.waveSetup(bemFreq,wDepth,rampTime,dt,maxIt,g, rho, endTime)
         result1 = np.conj(np.transpose(np.loadtxt(cwd + '/testData/etaImport_1_test/waveAmpTime.txt')))
         self.assertIsNone(np.testing.assert_allclose(self.etaImport_1.waveAmpTime, result1))
@@ -653,7 +653,7 @@ class TestWave(unittest.TestCase):
         # g = 9.81
         # rho = 1000
         # endTime = 400
-        self.etaImport_2.etaDataFile = './testData/etaImport_1_test/etaData.mat'
+        self.etaImport_2.etaDataFile = cwd + '/testData/etaImport_1_test/etaData.mat'
         self.etaImport_2.waveSetup(bemFreq,wDepth,rampTime,dt,maxIt,g, rho, endTime)
         result1 = np.conj(np.transpose(np.loadtxt(cwd + '/testData/etaImport_1_test/waveAmpTime.txt')))
         self.assertIsNone(np.testing.assert_allclose(self.etaImport_2.waveAmpTime, result1))
