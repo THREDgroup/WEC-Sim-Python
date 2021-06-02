@@ -17,8 +17,8 @@ jobs:
       before_script:
       - git lfs pull
       # command to run tests
-      script: python ./tests/test_objects/test_waveclass/test.py
-      script: python ./tests/test_objects/test_bodyclass/test.py
+      script: python ./tests/test_objects/test_waveclass/test.py;
+                     ./tests/test_objects/test_bodyclass/test.py
     # mac os build error after git lfs got updated
     #- name: "Python 3.6 on Mac"
       #os: osx
