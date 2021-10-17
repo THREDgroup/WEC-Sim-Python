@@ -5,7 +5,7 @@
 **WEC-Sim-Python** aims to help researchers, start-up companies, and enthusiasts without access to MATLAB in order to use the open-source code provided by NREL and Sandia lab. Also, with growing research in the field of machine learning, **WEC-Sim-Python** could be more convenient for those who develop machine learning projects utilizing Python.
 
 ## Build Status
-**Note: WEC-Sim-Python has not been completed.** Estimated date of completion: **August, 2021**
+**Note: WEC-Sim-Python has not been completed.** Estimated date of completion: **August, 2022**
 ### Currently supports
 - [x] Simulation class: getWecSimPythonVer will be tested upon pre-release
 - [x] Wave class
